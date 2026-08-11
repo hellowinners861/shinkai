@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#071929" />
+    <title>SHINKAI</title>
+  </head>
+  <body>
+    <main id="app" aria-label="SHINKAI game">
+      <div id="game-container" aria-describedby="control-help">
+        <section id="title-ui" class="html-ui-layer" aria-labelledby="title-heading">
+          <div class="title-controls">
+            <h1 id="title-heading" class="visually-hidden">SHINKAI</h1>
+            <p id="control-help" class="control-help">
+              Use the touch stick or WASD / arrow keys to steer.
+            </p>
+            <button id="start-button" class="shell-button" type="button">
+              Start dive
+            </button>
+          </div>
+        </section>
+
+        <section id="game-ui" class="html-ui-layer" hidden aria-label="Game controls">
+          <div class="game-hud" aria-live="polite">
+            <p id="depth-readout">Depth 0m</p>
+            <p id="fuel-readout">Fuel 100</p>
+          </div>
+          <div class="game-actions">
+            <button
+              id="pause-button"
+              class="shell-button shell-button--compact"
+              type="button"
+              aria-pressed="false"
+            >
+              Pause
+            </button>
+            <button
+              id="audio-button"
+              class="shell-button shell-button--compact"
+              type="button"
+              aria-pressed="false"
+            >
+              Audio: on
+            </button>
+          </div>
+          <div
+            id="virtual-joystick"
+            class="virtual-joystick"
+            role="group"
+            aria-label="Movement stick"
+          >
+            <span class="joystick-base" aria-hidden="true"></span>
+            <span class="joystick-knob" data-joystick-knob aria-hidden="true"></span>
+          </div>
+        </section>
+      </div>
+
+      <section id="orientation-warning" hidden role="alert" aria-live="assertive">
+        <div class="orientation-card">
+          <h2>Portrait play is recommended</h2>
+          <p>Rotate the device for the best view and control layout.</p>
+          <button id="continue-landscape" class="shell-button" type="button">
+            Continue in landscape
+          </button>
+        </div>
+      </section>
+
+      <section id="resume-warning" hidden role="alert" aria-live="polite">
+        <div class="orientation-card">
+          <h2>Resume the game?</h2>
+          <p>Input was stopped while the page was not visible.</p>
+          <button id="resume-button" class="shell-button" type="button">
+            Return to game
+          </button>
+        </div>
+      </section>
+
+      <p id="accessibility-status" class="visually-hidden" role="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
