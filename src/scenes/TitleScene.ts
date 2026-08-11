@@ -1,84 +1,143 @@
-import Phaser from "phaser";
+import Phaser from 'phaser';
 
-import { GAME_HEIGHT, GAME_WIDTH } from "../game/config";
-import { announce, prefersReducedMotion } from "../platform/preferences";
+import { GAME_HEIGHT, GAME_WIDTH } from '../game/config';
+import { announce, prefersReducedMotion } from '../platform/preferences';
 
-/** Visible launch target for the mobile-first preparation shell. */
+/** Title presentation for the Abyssal Field Console shell. */
 export class TitleScene extends Phaser.Scene {
   public constructor() {
-    super("TitleScene");
+    super('TitleScene');
   }
 
   public create(): void {
     const reducedMotion = prefersReducedMotion();
+    const centerX = GAME_WIDTH / 2;
+    const windowCenterY = 330;
+    const windowRadius = 116;
 
-    document.getElementById("title-ui")?.removeAttribute("hidden");
-    document.getElementById("game-ui")?.setAttribute("hidden", "");
+    document.getElementById('title-ui')?.removeAttribute('hidden');
+    document.getElementById('game-ui')?.setAttribute('hidden', '');
+    document.getElementById('game-container')?.removeAttribute('data-paused');
 
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x071929).setOrigin(0);
-    this.add.rectangle(0, 0, GAME_WIDTH, 180, 0x0b3045).setOrigin(0);
-    this.add.circle(70, 236, 5, 0x82d8f5).setAlpha(0.45);
-    this.add.circle(382, 315, 7, 0x2696bd).setAlpha(0.4);
-    this.add.circle(318, 590, 4, 0x82d8f5).setAlpha(0.35);
+    const background = this.add.graphics();
+    background.fillGradientStyle(
+      0x0a2b36,
+      0x071f2a,
+      0x02070b,
+      0x02070b,
+      1,
+    );
+    background.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    this.add
+      .rectangle(0, 106, GAME_WIDTH, 1, 0x27606a)
+      .setOrigin(0)
+      .setAlpha(0.5);
+    this.add
+      .rectangle(0, GAME_HEIGHT - 166, GAME_WIDTH, 1, 0x27606a)
+      .setOrigin(0)
+      .setAlpha(0.56);
 
     this.add
-      .text(GAME_WIDTH / 2, 190, "SHINKAI", {
-        color: "#e9faff",
-        fontFamily: "system-ui, sans-serif",
-        fontSize: "48px",
-        fontStyle: "bold",
-      })
-      .setOrigin(0.5);
+      .circle(centerX, windowCenterY, windowRadius, 0x04121a)
+      .setAlpha(0.72)
+      .setStrokeStyle(1, 0x6bd9e8, 0.46);
+    this.add
+      .circle(centerX, windowCenterY, 94, 0x04121a)
+      .setAlpha(0.2)
+      .setStrokeStyle(1, 0x74f2d0, 0.28);
+    this.add
+      .circle(centerX, windowCenterY, 70, 0x04121a)
+      .setAlpha(0.18)
+      .setStrokeStyle(1, 0x6bd9e8, 0.22);
 
     this.add
-      .text(GAME_WIDTH / 2, 252, "MOBILE VERTICAL SHELL", {
-        color: "#82d8f5",
-        fontFamily: "system-ui, sans-serif",
-        fontSize: "16px",
-        letterSpacing: 2,
-      })
-      .setOrigin(0.5);
-
-    this.add
-      .rectangle(GAME_WIDTH / 2, 415, 172, 76, 0x0e4964)
-      .setStrokeStyle(2, 0x82d8f5);
-    this.add.rectangle(GAME_WIDTH / 2 - 22, 415, 94, 44, 0x2696bd);
-    this.add.circle(GAME_WIDTH / 2 + 48, 415, 14, 0x071929).setStrokeStyle(2, 0xe9faff);
-
-    this.add
-      .text(GAME_WIDTH / 2, 520, "Portrait 9:16  |  450 x 800 logical view", {
-        color: "#d7f4ff",
-        fontFamily: "system-ui, sans-serif",
-        fontSize: "15px",
-      })
-      .setOrigin(0.5);
-
-    this.add
-      .text(
-        GAME_WIDTH / 2,
-        556,
-        reducedMotion ? "Reduced motion is enabled." : "Touch controls and keyboard fallback are ready.",
-        {
-          color: "#9fc7d6",
-          fontFamily: "system-ui, sans-serif",
-          fontSize: "14px",
-          align: "center",
-        },
+      .line(
+        0,
+        0,
+        centerX - windowRadius,
+        windowCenterY,
+        centerX + windowRadius,
+        windowCenterY,
+        0x6bd9e8,
+        0.2,
       )
-      .setOrigin(0.5);
+      .setOrigin(0);
+    this.add
+      .line(
+        0,
+        0,
+        centerX,
+        windowCenterY - windowRadius,
+        centerX,
+        windowCenterY + windowRadius,
+        0x6bd9e8,
+        0.2,
+      )
+      .setOrigin(0);
 
-    this.input.keyboard?.on("keydown-ENTER", this.requestStart);
-    this.input.keyboard?.on("keydown-SPACE", this.requestStart);
-    this.events.once("shutdown", this.cleanup);
-    announce("Title ready. Press Start dive or Enter to begin.");
+    for (const angle of [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2]) {
+      const outerX = centerX + Math.cos(angle) * windowRadius;
+      const outerY = windowCenterY + Math.sin(angle) * windowRadius;
+      const innerX = centerX + Math.cos(angle) * (windowRadius - 10);
+      const innerY = windowCenterY + Math.sin(angle) * (windowRadius - 10);
+      this.add
+        .line(0, 0, innerX, innerY, outerX, outerY, 0x74f2d0, 0.54)
+        .setOrigin(0);
+    }
+
+    const sweep = this.add
+      .rectangle(centerX, windowCenterY, 2, windowRadius - 8, 0x74f2d0)
+      .setOrigin(0.5, 1)
+      .setAlpha(reducedMotion ? 0.08 : 0.16)
+      .setAngle(-38);
+    if (!reducedMotion) {
+      this.tweens.add({
+        targets: sweep,
+        angle: 322,
+        duration: 4200,
+        ease: 'Linear',
+        repeat: -1,
+      });
+    }
+
+    this.add
+      .rectangle(centerX, windowCenterY + 2, 92, 30, 0x0a2b36)
+      .setStrokeStyle(2, 0x74f2d0, 0.78);
+    this.add
+      .rectangle(centerX - 55, windowCenterY + 2, 18, 5, 0x74f2d0)
+      .setAlpha(0.78);
+    this.add
+      .rectangle(centerX + 43, windowCenterY + 2, 10, 20, 0x27606a)
+      .setAlpha(0.9);
+    this.add
+      .rectangle(centerX - 9, windowCenterY - 20, 22, 4, 0x27606a)
+      .setAlpha(0.9);
+    this.add
+      .circle(centerX + 20, windowCenterY, 8, 0x02070b)
+      .setStrokeStyle(1, 0x6bd9e8, 0.9);
+    this.add.circle(centerX + 37, windowCenterY + 2, 3, 0xf1b955).setAlpha(0.8);
+
+    for (const y of [142, 154, 506, 518]) {
+      this.add
+        .line(0, 0, 42, y, 96, y, 0x27606a, 0.32)
+        .setOrigin(0);
+      this.add
+        .line(0, 0, GAME_WIDTH - 96, y, GAME_WIDTH - 42, y, 0x27606a, 0.32)
+        .setOrigin(0);
+    }
+
+    this.input.keyboard?.on('keydown-ENTER', this.requestStart);
+    this.input.keyboard?.on('keydown-SPACE', this.requestStart);
+    this.events.once('shutdown', this.cleanup);
+    announce('タイトル画面です。潜航を開始できます。');
   }
 
   private readonly requestStart = (): void => {
-    this.game.events.emit("shinkai:start-request");
+    this.game.events.emit('shinkai:start-request');
   };
 
   private readonly cleanup = (): void => {
-    this.input.keyboard?.off("keydown-ENTER", this.requestStart);
-    this.input.keyboard?.off("keydown-SPACE", this.requestStart);
+    this.input.keyboard?.off('keydown-ENTER', this.requestStart);
+    this.input.keyboard?.off('keydown-SPACE', this.requestStart);
   };
 }

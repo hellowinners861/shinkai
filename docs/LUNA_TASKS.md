@@ -23,3 +23,11 @@ visibilitychange、blur、向き変更、横向き案内に必要な状態処理
 ## 4. Integration
 
 タスク1〜3完了後だけ開始。全変更をレビューし、`BootScene`、`TitleScene`、必要なCSS、READMEへ接続する。競合や設計逸脱を直し、typecheck、test、buildを実行する。生物本編と画像は実装しない。
+
+## 5. Ultra UI redesign implementation
+
+タスク1〜4の挙動を維持し、`docs/UI_DESIGN.md`「Abyssal Field Console」を実装する。
+
+編集可能: `index.html`, `src/style.css`, `src/main.ts`, `src/scenes/TitleScene.ts`, `src/scenes/GameScene.ts`、UI文言に直接関係するテスト。必要ならREADMEの画面説明のみ。
+
+ゲーム定数、入力計算、ライフサイクル状態遷移、生物データ、研究CSV、画像、ビルド／配信設定は変更しない。画像生成、外部画像、外部フォント、hotlinkを使わない。指定viewportで重なりを確認し、typecheck、test、buildを通す。commit/pushしない。

@@ -1,24 +1,24 @@
-import Phaser from "phaser";
+import Phaser from 'phaser';
 
 import {
   getCappedDevicePixelRatio,
   MIN_VIEWPORT_HEIGHT,
   MIN_VIEWPORT_WIDTH,
   gameConfig,
-} from "./game/config";
+} from './game/config';
 import {
   createMobileLifecycleState,
   getMobileLifecycleStatus,
   reduceMobileLifecycleState,
   type MobileLifecycleEvent,
-} from "./platform/mobileLifecycle";
-import { announce, readAudioMuted, writeAudioMuted } from "./platform/preferences";
-import { installViewportListeners } from "./platform/viewport";
-import { BootScene } from "./scenes/BootScene";
-import { GameScene } from "./scenes/GameScene";
-import { ResultScene } from "./scenes/ResultScene";
-import { TitleScene } from "./scenes/TitleScene";
-import "./style.css";
+} from './platform/mobileLifecycle';
+import { announce, readAudioMuted, writeAudioMuted } from './platform/preferences';
+import { installViewportListeners } from './platform/viewport';
+import { BootScene } from './scenes/BootScene';
+import { GameScene } from './scenes/GameScene';
+import { ResultScene } from './scenes/ResultScene';
+import { TitleScene } from './scenes/TitleScene';
+import './style.css';
 
 const game = new Phaser.Game({
   ...gameConfig,
@@ -37,19 +37,19 @@ const game = new Phaser.Game({
 
 const cappedDevicePixelRatio = getCappedDevicePixelRatio();
 document.documentElement.style.setProperty(
-  "--shinkai-device-pixel-ratio",
+  '--shinkai-device-pixel-ratio',
   String(cappedDevicePixelRatio),
 );
-game.canvas.style.touchAction = "none";
+game.canvas.style.touchAction = 'none';
 game.canvas.dataset.pixelRatio = String(cappedDevicePixelRatio);
 
-const orientationWarning = document.getElementById("orientation-warning");
-const continueLandscapeButton = document.getElementById("continue-landscape");
-const resumeWarning = document.getElementById("resume-warning");
-const resumeButton = document.getElementById("resume-button");
-const startButton = document.getElementById("start-button");
-const pauseButton = document.getElementById("pause-button");
-const audioButton = document.getElementById("audio-button");
+const orientationWarning = document.getElementById('orientation-warning');
+const continueLandscapeButton = document.getElementById('continue-landscape');
+const resumeWarning = document.getElementById('resume-warning');
+const resumeButton = document.getElementById('resume-button');
+const startButton = document.getElementById('start-button');
+const pauseButton = document.getElementById('pause-button');
+const audioButton = document.getElementById('audio-button');
 
 let audioMuted = readAudioMuted();
 
@@ -63,13 +63,13 @@ function getViewportSize(): { width: number; height: number } {
 
 const initialViewport = getViewportSize();
 let lifecycleState = createMobileLifecycleState({
-  visibility: document.visibilityState === "hidden" ? "hidden" : "visible",
+  visibility: document.visibilityState === 'hidden' ? 'hidden' : 'visible',
   viewportWidth: initialViewport.width,
   viewportHeight: initialViewport.height,
 });
 
 function setHidden(element: HTMLElement | null, hidden: boolean): void {
-  element?.toggleAttribute("hidden", hidden);
+  element?.toggleAttribute('hidden', hidden);
 }
 
 function syncAudioButton(): void {
@@ -77,29 +77,35 @@ function syncAudioButton(): void {
     return;
   }
 
-  audioButton.textContent = audioMuted ? "Audio: off" : "Audio: on";
-  audioButton.setAttribute("aria-pressed", String(audioMuted));
+  const state = document.getElementById('audio-state');
+  audioButton.setAttribute('aria-pressed', String(audioMuted));
+  audioButton.setAttribute(
+    'aria-label',
+    audioMuted ? '音声を入れる' : '音声を切る',
+  );
+  audioButton.dataset.muted = String(audioMuted);
+  state?.replaceChildren(audioMuted ? 'OFF' : 'ON');
 }
 
 function applyLifecycleState(): void {
   const status = getMobileLifecycleStatus(lifecycleState);
   document.documentElement.dataset.orientation = status.isLandscape
-    ? "landscape"
-    : "portrait";
+    ? 'landscape'
+    : 'portrait';
   setHidden(orientationWarning, !status.showLandscapeGuidance);
   setHidden(
     resumeWarning,
     !lifecycleState.resumeRequired ||
-      lifecycleState.visibility === "hidden" ||
+      lifecycleState.visibility === 'hidden' ||
       status.showLandscapeGuidance,
   );
 
-  game.registry.set("shinkai.lifecycleStatus", status);
-  game.events.emit("shinkai:lifecycle", status);
+  game.registry.set('shinkai.lifecycleStatus', status);
+  game.events.emit('shinkai:lifecycle', status);
 
   if (status.showLandscapeGuidance) {
     game.loop.sleep();
-    announce("Portrait orientation is recommended. Rotate the device or continue in landscape.");
+    announce('縦画面を推奨しています。端末を回転するか、横向きのまま続けてください。');
     return;
   }
 
@@ -119,7 +125,7 @@ function dispatchLifecycleEvent(event: MobileLifecycleEvent): void {
 function syncOrientation(): void {
   const viewport = getViewportSize();
   dispatchLifecycleEvent({
-    type: "orientationchange",
+    type: 'orientationchange',
     width: viewport.width,
     height: viewport.height,
   });
@@ -134,63 +140,71 @@ function startGame(): void {
 
   setHidden(resumeWarning, true);
   game.loop.wake();
-  game.scene.start("GameScene");
-  announce("Dive started. Use the movement stick or WASD and arrow keys.");
+  game.scene.start('GameScene');
+  announce('潜航を開始しました。操舵環またはキーボードで調査艇を操作します。');
 }
 
-continueLandscapeButton?.addEventListener("click", () => {
-  dispatchLifecycleEvent({ type: "continue-landscape" });
-  announce("Continuing in landscape. The portrait game view remains fixed.");
+continueLandscapeButton?.addEventListener('click', () => {
+  dispatchLifecycleEvent({ type: 'continue-landscape' });
+  announce('横向きで続けます。縦比率の観測視野は維持されます。');
 });
 
-resumeButton?.addEventListener("click", () => {
-  dispatchLifecycleEvent({ type: "resume" });
+resumeButton?.addEventListener('click', () => {
+  dispatchLifecycleEvent({ type: 'resume' });
   if (getMobileLifecycleStatus(lifecycleState).canRunGame) {
-    announce("Game resumed.");
+    announce('潜航を再開しました。');
   }
 });
 
-startButton?.addEventListener("click", startGame);
-game.events.on("shinkai:start-request", startGame);
-game.events.on("shinkai:boot-ready", applyLifecycleState);
+startButton?.addEventListener('click', startGame);
+game.events.on('shinkai:start-request', startGame);
+game.events.on('shinkai:boot-ready', applyLifecycleState);
 
-pauseButton?.addEventListener("click", () => {
-  const scene = game.scene.getScene("GameScene");
+pauseButton?.addEventListener('click', () => {
+  const scene = game.scene.getScene('GameScene');
   if (scene instanceof GameScene) {
     scene.togglePaused();
   }
 });
 
-audioButton?.addEventListener("click", () => {
+audioButton?.addEventListener('click', () => {
   audioMuted = !audioMuted;
   writeAudioMuted(audioMuted);
   syncAudioButton();
-  announce(audioMuted ? "Audio muted." : "Audio enabled.");
+  announce(audioMuted ? '音声を切りました。' : '音声を入れました。');
 });
 
-document.addEventListener("visibilitychange", () => {
-  const visibility = document.visibilityState === "hidden" ? "hidden" : "visible";
-  dispatchLifecycleEvent({ type: "visibilitychange", visibility });
-  if (visibility === "hidden") {
-    announce("Game and input stopped while the page is hidden.");
+document.addEventListener('visibilitychange', () => {
+  const visibility = document.visibilityState === 'hidden' ? 'hidden' : 'visible';
+  dispatchLifecycleEvent({ type: 'visibilitychange', visibility });
+  if (visibility === 'hidden') {
+    announce('ページが非表示になったため、潜航と操舵を停止しました。');
     return;
   }
 
-  announce("Press Return to game to resume safely.");
+  announce('安全のため、潜航に戻るボタンで再開してください。');
 });
 
-window.addEventListener("blur", () => {
-  dispatchLifecycleEvent({ type: "blur" });
-  announce("Game and input stopped after focus was lost.");
-}, { passive: true });
+window.addEventListener(
+  'blur',
+  () => {
+    dispatchLifecycleEvent({ type: 'blur' });
+    announce('フォーカスを失ったため、潜航と操舵を停止しました。');
+  },
+  { passive: true },
+);
 
-window.addEventListener("focus", () => {
-  dispatchLifecycleEvent({ type: "focus" });
-}, { passive: true });
+window.addEventListener(
+  'focus',
+  () => {
+    dispatchLifecycleEvent({ type: 'focus' });
+  },
+  { passive: true },
+);
 
-window.addEventListener("resize", syncOrientation, { passive: true });
-window.addEventListener("orientationchange", syncOrientation, { passive: true });
-window.visualViewport?.addEventListener("resize", syncOrientation, { passive: true });
+window.addEventListener('resize', syncOrientation, { passive: true });
+window.addEventListener('orientationchange', syncOrientation, { passive: true });
+window.visualViewport?.addEventListener('resize', syncOrientation, { passive: true });
 
 syncAudioButton();
 installViewportListeners(game);
