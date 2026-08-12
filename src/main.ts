@@ -50,6 +50,8 @@ const resumeButton = document.getElementById('resume-button');
 const startButton = document.getElementById('start-button');
 const pauseButton = document.getElementById('pause-button');
 const audioButton = document.getElementById('audio-button');
+const resultRetryButton = document.getElementById('result-retry-button');
+const resultTitleButton = document.getElementById('result-title-button');
 
 let audioMuted = readAudioMuted();
 
@@ -131,17 +133,28 @@ function syncOrientation(): void {
   });
 }
 
-function startGame(): void {
+function startGame(): boolean {
   const status = getMobileLifecycleStatus(lifecycleState);
   if (!status.canRunGame) {
     applyLifecycleState();
-    return;
+    return false;
   }
 
   setHidden(resumeWarning, true);
   game.loop.wake();
   game.scene.start('GameScene');
   announce('潜航を開始しました。操舵環またはキーボードで調査艇を操作します。');
+  return true;
+}
+
+function returnToTitle(): void {
+  if (game.scene.isActive('TitleScene')) {
+    return;
+  }
+
+  game.scene.start('TitleScene');
+  applyLifecycleState();
+  announce('タイトルへ戻りました。');
 }
 
 continueLandscapeButton?.addEventListener('click', () => {
@@ -158,6 +171,23 @@ resumeButton?.addEventListener('click', () => {
 
 startButton?.addEventListener('click', startGame);
 game.events.on('shinkai:start-request', startGame);
+resultRetryButton?.addEventListener('click', () => {
+  if (!startGame()) {
+    return;
+  }
+
+  resultRetryButton.setAttribute('disabled', '');
+  resultTitleButton?.setAttribute('disabled', '');
+});
+resultTitleButton?.addEventListener('click', () => {
+  if (game.scene.isActive('TitleScene')) {
+    return;
+  }
+
+  resultRetryButton?.setAttribute('disabled', '');
+  resultTitleButton.setAttribute('disabled', '');
+  returnToTitle();
+});
 game.events.on('shinkai:boot-ready', applyLifecycleState);
 
 pauseButton?.addEventListener('click', () => {

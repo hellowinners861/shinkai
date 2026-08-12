@@ -115,6 +115,61 @@
             <span class='joystick-knob' data-joystick-knob aria-hidden='true'></span>
           </div>
         </section>
+        <section id='result-ui' class='html-ui-layer' hidden aria-labelledby='result-heading'>
+          <div class='result-layout'>
+            <article class='result-panel'>
+              <header class='result-header'>
+                <p class='result-kicker'>PELAGIC RESEARCH UNIT / DIVE RESULT</p>
+                <h1 id='result-heading'>潜航結果</h1>
+                <p id='result-outcome' class='result-outcome' role='status'>調査完了</p>
+              </header>
+
+              <dl class='result-stats' aria-label='潜航結果の詳細'>
+                <div class='result-stat'>
+                  <dt>到達深度</dt>
+                  <dd id='result-depth'>0000 m</dd>
+                </div>
+                <div class='result-stat'>
+                  <dt>残燃料</dt>
+                  <dd id='result-fuel'>100.0%</dd>
+                </div>
+                <div class='result-stat'>
+                  <dt>経過時間</dt>
+                  <dd id='result-elapsed'>0.0秒</dd>
+                </div>
+                <div class='result-stat'>
+                  <dt>スコア</dt>
+                  <dd id='result-score'>0</dd>
+                </div>
+                <div class='result-stat'>
+                  <dt>発見数</dt>
+                  <dd id='result-discovered'>0</dd>
+                </div>
+                <div class='result-stat'>
+                  <dt>獲得数</dt>
+                  <dd id='result-collected'>0</dd>
+                </div>
+              </dl>
+
+              <div class='result-actions'>
+                <button
+                  id='result-retry-button'
+                  class='shell-button shell-button--primary'
+                  type='button'
+                >
+                  再挑戦
+                </button>
+                <button
+                  id='result-title-button'
+                  class='shell-button result-button--secondary'
+                  type='button'
+                >
+                  タイトルへ戻る
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
 
       <section id='orientation-warning' hidden role='alert' aria-live='assertive'>

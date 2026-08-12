@@ -29,6 +29,7 @@ import type { InputVector } from '../input/vector';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
 import { announce, prefersReducedMotion } from '../platform/preferences';
+import { createDiveResultSnapshot } from '../types/game';
 
 interface KeyboardSet {
   up: Phaser.Input.Keyboard.Key;
@@ -118,6 +119,7 @@ export class GameScene extends Phaser.Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private wasd: KeyboardSet | undefined;
   private paused = false;
+  private terminalTransitionStarted = false;
   private lifecyclePaused = false;
   private reducedMotion = false;
   private diveProgression: DiveProgressionState =
@@ -138,6 +140,7 @@ export class GameScene extends Phaser.Scene {
   public create(): void {
     this.reducedMotion = prefersReducedMotion();
     this.paused = false;
+    this.terminalTransitionStarted = false;
     this.diveProgression = createInitialDiveProgressionState();
     this.destroyEncounterObjects();
     this.encounterScheduleState = createInitialEncounterScheduleState();
@@ -155,6 +158,7 @@ export class GameScene extends Phaser.Scene {
 
     document.getElementById('title-ui')?.setAttribute('hidden', '');
     document.getElementById('game-ui')?.removeAttribute('hidden');
+    document.getElementById('result-ui')?.setAttribute('hidden', '');
     document.getElementById('game-container')?.removeAttribute('data-paused');
     document.getElementById('pause-overlay')?.setAttribute('hidden', '');
     this.clearEncounterEvent();
@@ -274,7 +278,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   public update(_time: number, delta: number): void {
-    if (!this.player || this.paused || this.lifecyclePaused) {
+    if (!this.player || this.paused || this.lifecyclePaused || this.terminalTransitionStarted) {
       return;
     }
 
@@ -304,6 +308,8 @@ export class GameScene extends Phaser.Scene {
 
     if (previousStatus !== nextProgression.status) {
       this.announceTerminalStatus(nextProgression.status);
+      this.transitionToResult();
+      return;
     }
 
     if (nextProgression.status !== 'descending') {
@@ -533,6 +539,8 @@ export class GameScene extends Phaser.Scene {
         announce('船体に衝突しました。燃料が10減少しました。');
         if (previousStatus !== this.diveProgression.status) {
           this.announceTerminalStatus(this.diveProgression.status);
+          this.transitionToResult();
+          return;
         }
         continue;
       }
@@ -752,6 +760,26 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private transitionToResult(): void {
+    if (this.terminalTransitionStarted) {
+      return;
+    }
+
+    const status = this.diveProgression.status;
+    if (status === 'descending') {
+      return;
+    }
+
+    this.terminalTransitionStarted = true;
+    this.paused = true;
+    this.resetInput();
+    this.destroyEncounterObjects();
+    this.clearEncounterEvent();
+
+    const result = createDiveResultSnapshot(this.diveProgression);
+    this.scene.start('ResultScene', { result });
+  }
+
   private announceTerminalStatus(status: DiveProgressionState['status']): void {
     if (status === 'cleared') {
       announce(`目標深度${DIVE_TARGET_DEPTH_M.toLocaleString('en-US')}mに到達しました。`);
@@ -817,6 +845,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.off('keydown-ESC', this.handlePauseKey);
     document.getElementById('game-ui')?.setAttribute('hidden', '');
     document.getElementById('title-ui')?.removeAttribute('hidden');
+    document.getElementById('result-ui')?.setAttribute('hidden', '');
     document.getElementById('pause-overlay')?.setAttribute('hidden', '');
     document.getElementById('game-container')?.removeAttribute('data-paused');
     const pauseGlyph = document.getElementById('pause-glyph');
