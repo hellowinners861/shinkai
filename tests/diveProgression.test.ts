@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adjustDiveFuel,
   advanceDiveProgression,
   clampDiveFrameSeconds,
   createInitialDiveProgressionState,
@@ -90,5 +91,29 @@ describe("dive progression", () => {
 
     expect(advanceDiveProgression(cleared, 1)).toBe(cleared);
     expect(advanceDiveProgression(depleted, 1)).toBe(depleted);
+  });
+
+  it('clamps fuel adjustments', () => {
+    const initial = createInitialDiveProgressionState();
+    expect(adjustDiveFuel({ ...initial, fuel: 80 }, 25).fuel).toBe(100);
+    expect(adjustDiveFuel({ ...initial, fuel: 5 }, -10).fuel).toBe(0);
+  });
+
+  it('derives depleted and does not revive terminal dives', () => {
+    const depleted = adjustDiveFuel(
+      { ...createInitialDiveProgressionState(), fuel: 5 },
+      -10,
+    );
+
+    expect(depleted.status).toBe('depleted');
+    expect(adjustDiveFuel(depleted, 25)).toBe(depleted);
+
+    const cleared = {
+      ...createInitialDiveProgressionState(),
+      depthM: DIVE_TARGET_DEPTH_M,
+      fuel: 50,
+      status: 'cleared' as const,
+    };
+    expect(adjustDiveFuel(cleared, 25)).toBe(cleared);
   });
 });

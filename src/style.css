@@ -291,6 +291,38 @@ button {
   pointer-events: none;
 }
 
+.encounter-event {
+  position: absolute;
+  top: calc(var(--ui-top) + 3.8rem);
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  width: min(calc(100% - 1.5rem), 20rem);
+  min-height: 2rem;
+  align-items: center;
+  padding: 0.42rem 0.65rem;
+  border: 1px solid rgba(241, 185, 85, 0.7);
+  background: rgba(2, 7, 11, 0.88);
+  color: var(--warning);
+  font-family: 'Cascadia Mono', 'SFMono-Regular', monospace;
+  font-size: clamp(0.52rem, 2.2vw, 0.7rem);
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.encounter-event[data-kind='impact'] {
+  border-color: rgba(255, 107, 94, 0.82);
+  color: var(--danger);
+}
+
+.encounter-event[data-kind='recovery'] {
+  border-color: rgba(116, 242, 208, 0.76);
+  color: var(--glow);
+}
+
 .telemetry-item {
   display: grid;
   min-width: 0;
@@ -656,6 +688,15 @@ button {
 
   .telemetry-item strong {
     font-size: 0.68rem;
+  }
+
+  .encounter-event {
+    top: calc(var(--ui-top) + 3.55rem);
+    width: calc(100% - 1rem);
+    min-height: 1.75rem;
+    padding: 0.34rem 0.45rem;
+    font-size: 0.48rem;
+    letter-spacing: 0.06em;
   }
 
   .dive-status {

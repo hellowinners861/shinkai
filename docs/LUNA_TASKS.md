@@ -39,3 +39,17 @@ visibilitychange、blur、向き変更、横向き案内に必要な状態処理
 編集可能: 新規 `src/game/diveProgression.ts`、新規 `tests/diveProgression.test.ts`、`src/scenes/GameScene.ts`、必要な場合のみ`index.html`とREADME。
 
 入力、ライフサイクル、UIテーマ、生物、障害物、回復、正式結果画面、設計書、研究CSV、画像、ビルド／配信設定は変更しない。指定テストとブラウザ確認を行い、commit/pushしない。
+
+## 7A. Hazard and recovery pure rules
+
+`docs/HAZARDS_AND_RECOVERY.md` を正本として、燃料増減、決定的な出現予定、円形衝突判定、無敵時間をPhaser／DOM非依存の純粋ロジックで実装する。
+
+編集可能: 既存 `src/game/diveProgression.ts`、既存 `tests/diveProgression.test.ts`、新規 `src/game/encounterRules.ts`、新規 `tests/encounterRules.test.ts` のみ。`npm run typecheck` と `npm test` を通す。
+
+## 7B. Hazard and recovery integration
+
+タスク7A完了後だけ開始。岩と回復カプセルの描画、移動、衝突、HUD／イベント表示を統合する。
+
+編集可能: `src/scenes/GameScene.ts`、`index.html`、`src/style.css`、挙動説明に必要な場合のみREADME、および統合に不可欠な修正に限るタスク7Aのルールファイルと対応テスト。320×568のブラウザで動作と重なりを確認し、`npm run typecheck`、`npm test`、`npm run build` を通す。
+
+タスク7A／7Bでは、実在生物、クジラ、ダイオウイカ、図鑑、スコア、正式結果画面を実装せず、docs、研究CSV、画像、入力、ライフサイクル、ビルド／配信設定を変更しない。commit/pushしない。

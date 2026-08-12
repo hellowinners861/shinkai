@@ -71,6 +71,28 @@ export function advanceDiveProgression(
   };
 }
 
+/** Applies a signed fuel adjustment without reviving a terminal dive. */
+export function adjustDiveFuel(
+  state: DiveProgressionState,
+  fuelDelta: number,
+): DiveProgressionState {
+  if (state.status !== 'descending') {
+    return state;
+  }
+
+  if (!Number.isFinite(fuelDelta) || fuelDelta === 0) {
+    return state;
+  }
+
+  const fuel = clamp(state.fuel + fuelDelta, 0, DIVE_MAX_FUEL);
+
+  return {
+    ...state,
+    fuel,
+    status: getDiveStatus(state.depthM, fuel),
+  };
+}
+
 /** Returns the terminal status implied by the clamped progression values. */
 export function getDiveStatus(depthM: number, fuel: number): DiveStatus {
   if (fuel <= 0) {
