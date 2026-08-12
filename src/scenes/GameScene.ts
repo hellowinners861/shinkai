@@ -1,6 +1,15 @@
 import Phaser from 'phaser';
 
 import { GAME_HEIGHT, GAME_WIDTH } from '../game/config';
+import {
+  advanceDiveProgression,
+  clampDiveFrameSeconds,
+  createInitialDiveProgressionState,
+  DIVE_AUTO_DESCENT_SPEED_M_PER_SECOND,
+  DIVE_MAX_FUEL,
+  DIVE_TARGET_DEPTH_M,
+  type DiveProgressionState,
+} from '../game/diveProgression';
 import type { InputVector } from '../input/vector';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
@@ -13,6 +22,44 @@ interface KeyboardSet {
   right: Phaser.Input.Keyboard.Key;
 }
 
+interface MarineSnowParticle {
+  sprite: Phaser.GameObjects.Arc;
+  speedPxPerSecond: number;
+}
+
+interface HudSnapshot {
+  depthText: string;
+  fuelText: string;
+  fuelMeterValue: string;
+  statusPrimary: string;
+  statusSecondary: string;
+}
+
+const MARINE_SNOW_TOP = 112;
+const MARINE_SNOW_BOTTOM = GAME_HEIGHT - 158;
+const MARINE_SNOW_LAYOUT = [
+  { x: 24, y: 148, radius: 2, speed: 12, alpha: 0.1, color: 0x6bd9e8 },
+  { x: 77, y: 237, radius: 1, speed: 12, alpha: 0.12, color: 0x6bd9e8 },
+  { x: 129, y: 366, radius: 2, speed: 12, alpha: 0.08, color: 0x6bd9e8 },
+  { x: 188, y: 176, radius: 1, speed: 12, alpha: 0.14, color: 0x6bd9e8 },
+  { x: 231, y: 542, radius: 2, speed: 12, alpha: 0.1, color: 0x6bd9e8 },
+  { x: 276, y: 294, radius: 1, speed: 12, alpha: 0.16, color: 0x6bd9e8 },
+  { x: 323, y: 456, radius: 2, speed: 12, alpha: 0.1, color: 0x6bd9e8 },
+  { x: 369, y: 204, radius: 1, speed: 12, alpha: 0.12, color: 0x6bd9e8 },
+  { x: 414, y: 598, radius: 2, speed: 12, alpha: 0.08, color: 0x6bd9e8 },
+  { x: 438, y: 328, radius: 1, speed: 12, alpha: 0.14, color: 0x6bd9e8 },
+  { x: 46, y: 421, radius: 2, speed: 34, alpha: 0.16, color: 0x74f2d0 },
+  { x: 101, y: 154, radius: 1, speed: 34, alpha: 0.2, color: 0x74f2d0 },
+  { x: 148, y: 509, radius: 2, speed: 34, alpha: 0.14, color: 0x74f2d0 },
+  { x: 202, y: 269, radius: 1, speed: 34, alpha: 0.22, color: 0x74f2d0 },
+  { x: 254, y: 624, radius: 2, speed: 34, alpha: 0.18, color: 0x74f2d0 },
+  { x: 302, y: 392, radius: 1, speed: 34, alpha: 0.12, color: 0x74f2d0 },
+  { x: 348, y: 181, radius: 2, speed: 34, alpha: 0.2, color: 0x74f2d0 },
+  { x: 391, y: 475, radius: 1, speed: 34, alpha: 0.16, color: 0x74f2d0 },
+  { x: 421, y: 252, radius: 2, speed: 34, alpha: 0.14, color: 0x74f2d0 },
+  { x: 12, y: 570, radius: 1, speed: 34, alpha: 0.22, color: 0x74f2d0 },
+] as const;
+
 /** Playfield presentation for the Abyssal Field Console shell. */
 export class GameScene extends Phaser.Scene {
   private player: Phaser.GameObjects.Container | undefined;
@@ -22,6 +69,10 @@ export class GameScene extends Phaser.Scene {
   private paused = false;
   private lifecyclePaused = false;
   private reducedMotion = false;
+  private diveProgression: DiveProgressionState =
+    createInitialDiveProgressionState();
+  private marineSnow: MarineSnowParticle[] = [];
+  private hudSnapshot: HudSnapshot | undefined;
 
   public constructor() {
     super('GameScene');
@@ -30,6 +81,9 @@ export class GameScene extends Phaser.Scene {
   public create(): void {
     this.reducedMotion = prefersReducedMotion();
     this.paused = false;
+    this.diveProgression = createInitialDiveProgressionState();
+    this.marineSnow = [];
+    this.hudSnapshot = undefined;
     const lifecycleStatus = this.game.registry.get(
       'shinkai.lifecycleStatus',
     ) as MobileLifecycleStatus | undefined;
@@ -50,6 +104,7 @@ export class GameScene extends Phaser.Scene {
       1,
     );
     background.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    this.createMarineSnow();
     this.add
       .rectangle(0, 108, GAME_WIDTH, 1, 0x27606a)
       .setOrigin(0)
@@ -154,8 +209,38 @@ export class GameScene extends Phaser.Scene {
   }
 
   public update(_time: number, delta: number): void {
-    if (!this.player || this.paused || this.lifecyclePaused) {
+    if (
+      !this.player ||
+      this.paused ||
+      this.lifecyclePaused ||
+      this.diveProgression.status !== 'descending'
+    ) {
       return;
+    }
+
+    const frameSeconds = clampDiveFrameSeconds(delta / 1000);
+    const previousStatus = this.diveProgression.status;
+    const nextProgression = advanceDiveProgression(
+      this.diveProgression,
+      frameSeconds,
+    );
+    const progressionChanged = nextProgression !== this.diveProgression;
+    this.diveProgression = nextProgression;
+
+    if (progressionChanged) {
+      this.updateHud();
+    }
+
+    if (previousStatus !== nextProgression.status) {
+      this.announceTerminalStatus(nextProgression.status);
+    }
+
+    if (nextProgression.status !== 'descending') {
+      return;
+    }
+
+    if (!this.reducedMotion) {
+      this.updateMarineSnow(frameSeconds);
     }
 
     const joystickVector = this.joystick?.getVector();
@@ -230,12 +315,100 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateHud(): void {
-    document.getElementById('depth-readout')?.replaceChildren('0000 m');
-    document.getElementById('fuel-readout')?.replaceChildren('100%');
-    document.getElementById('fuel-meter')?.setAttribute('aria-valuenow', '100');
-    const fuelFill = document.getElementById('fuel-meter-fill');
-    if (fuelFill instanceof HTMLElement) {
-      fuelFill.style.width = '100%';
+    const depth = Number.isFinite(this.diveProgression.depthM)
+      ? Math.max(0, Math.floor(this.diveProgression.depthM))
+      : 0;
+    const fuel = Number.isFinite(this.diveProgression.fuel)
+      ? Phaser.Math.Clamp(this.diveProgression.fuel, 0, DIVE_MAX_FUEL)
+      : 0;
+    const statusText = this.getStatusText();
+    const snapshot: HudSnapshot = {
+      depthText: `${String(depth).padStart(4, '0')} m`,
+      fuelText: `${fuel.toFixed(1)}%`,
+      fuelMeterValue: String(fuel),
+      statusPrimary: statusText.primary,
+      statusSecondary: statusText.secondary,
+    };
+
+    if (!this.hudSnapshot || this.hudSnapshot.depthText !== snapshot.depthText) {
+      document.getElementById('depth-readout')?.replaceChildren(snapshot.depthText);
+    }
+    if (!this.hudSnapshot || this.hudSnapshot.fuelText !== snapshot.fuelText) {
+      document.getElementById('fuel-readout')?.replaceChildren(snapshot.fuelText);
+    }
+    if (
+      !this.hudSnapshot ||
+      this.hudSnapshot.fuelMeterValue !== snapshot.fuelMeterValue
+    ) {
+      document
+        .getElementById('fuel-meter')
+        ?.setAttribute('aria-valuenow', snapshot.fuelMeterValue);
+      const fuelFill = document.getElementById('fuel-meter-fill');
+      if (fuelFill instanceof HTMLElement) {
+        fuelFill.style.width = `${snapshot.fuelMeterValue}%`;
+      }
+    }
+
+    if (
+      !this.hudSnapshot ||
+      this.hudSnapshot.statusPrimary !== snapshot.statusPrimary ||
+      this.hudSnapshot.statusSecondary !== snapshot.statusSecondary
+    ) {
+      const statusElement = document.getElementById('dive-status');
+      statusElement?.children.item(0)?.replaceChildren(snapshot.statusPrimary);
+      statusElement?.children.item(1)?.replaceChildren(snapshot.statusSecondary);
+    }
+
+    this.hudSnapshot = snapshot;
+  }
+
+  private getStatusText(): { primary: string; secondary: string } {
+    switch (this.diveProgression.status) {
+      case 'cleared':
+        return { primary: 'TARGET REACHED', secondary: '' };
+      case 'depleted':
+        return { primary: 'FUEL EMPTY', secondary: '' };
+      case 'descending':
+        return {
+          primary: 'DESCENDING',
+          secondary: `AUTO / ${DIVE_AUTO_DESCENT_SPEED_M_PER_SECOND} M/S`,
+        };
+    }
+  }
+
+  private announceTerminalStatus(status: DiveProgressionState['status']): void {
+    if (status === 'cleared') {
+      announce(`目標深度${DIVE_TARGET_DEPTH_M.toLocaleString('en-US')}mに到達しました。`);
+    } else if (status === 'depleted') {
+      announce('燃料が空になったため、潜航を停止しました。');
+    }
+  }
+
+  private createMarineSnow(): void {
+    for (const particle of MARINE_SNOW_LAYOUT) {
+      this.marineSnow.push({
+        sprite: this.add.circle(
+          particle.x,
+          particle.y,
+          particle.radius,
+          particle.color,
+        ).setAlpha(particle.alpha),
+        speedPxPerSecond: particle.speed,
+      });
+    }
+  }
+
+  private updateMarineSnow(seconds: number): void {
+    if (seconds <= 0) {
+      return;
+    }
+
+    const wrapHeight = MARINE_SNOW_BOTTOM - MARINE_SNOW_TOP;
+    for (const particle of this.marineSnow) {
+      particle.sprite.y -= particle.speedPxPerSecond * seconds;
+      while (particle.sprite.y < MARINE_SNOW_TOP) {
+        particle.sprite.y += wrapHeight;
+      }
     }
   }
 

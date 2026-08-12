@@ -31,3 +31,11 @@ visibilitychange、blur、向き変更、横向き案内に必要な状態処理
 編集可能: `index.html`, `src/style.css`, `src/main.ts`, `src/scenes/TitleScene.ts`, `src/scenes/GameScene.ts`、UI文言に直接関係するテスト。必要ならREADMEの画面説明のみ。
 
 ゲーム定数、入力計算、ライフサイクル状態遷移、生物データ、研究CSV、画像、ビルド／配信設定は変更しない。画像生成、外部画像、外部フォント、hotlinkを使わない。指定viewportで重なりを確認し、typecheck、test、buildを通す。commit/pushしない。
+
+## 6. Automatic dive progression
+
+`docs/DIVE_PROGRESSION.md` を正本として、自動潜航、深度増加、通常燃料消費、marine snow背景スクロールを実装する。
+
+編集可能: 新規 `src/game/diveProgression.ts`、新規 `tests/diveProgression.test.ts`、`src/scenes/GameScene.ts`、必要な場合のみ`index.html`とREADME。
+
+入力、ライフサイクル、UIテーマ、生物、障害物、回復、正式結果画面、設計書、研究CSV、画像、ビルド／配信設定は変更しない。指定テストとブラウザ確認を行い、commit/pushしない。
