@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
 
+import {
+  readDiscoveryProgress,
+  recordSpeciesCollection,
+  recordSpeciesDiscovery,
+  writeDiscoveryProgress,
+} from '../catalog/discoveryStore';
+import speciesCatalogData from '../data/generated/speciesCatalog.json';
+import { APPROVED_SPECIES_ASSETS } from '../data/speciesAssets';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game/config';
 import {
   adjustDiveFuel,
@@ -22,9 +30,25 @@ import {
   ROCK_FUEL_DAMAGE,
   ROCK_INVULNERABILITY_SECONDS,
   updateInvulnerability,
+  type Circle,
   type EncounterLane,
   type EncounterSpawn,
 } from '../game/encounterRules';
+import {
+  advanceSpeciesSpawnSchedule,
+  canSpawnSpecies,
+  chooseNonOverlappingSpeciesPosition,
+  createInitialSpeciesScheduleState,
+  getSpeciesScrollSpeed,
+  MAX_ACTIVE_SPECIES,
+  resolveSpeciesInteraction,
+  selectSpeciesForDepth,
+  SPECIES_COLLISION_RADIUS,
+  type CatalogSpeciesRecord,
+  type SpeciesInteractionState,
+  type SpeciesSpawnRequest,
+  type SpawnableSpecies,
+} from '../game/speciesRules';
 import type { InputVector } from '../input/vector';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
@@ -54,6 +78,17 @@ interface EncounterObject {
   damageIgnored: boolean;
 }
 
+interface SpeciesObject {
+  display: Phaser.GameObjects.Container;
+  species: SpawnableSpecies;
+  spawnAtSeconds: number;
+  spawnX: number;
+  speedPxPerSecond: number;
+  radius: number;
+  sequence: number;
+  interactionState: SpeciesInteractionState;
+}
+
 interface HudSnapshot {
   depthText: string;
   fuelText: string;
@@ -74,6 +109,8 @@ const ENCOUNTER_EVENT_DURATION_SECONDS = 1.1;
 const PLAYER_IMPACT_DISPLAY_SECONDS = 0.45;
 const NORMAL_HULL_COLOR = 0x74f2d0;
 const IMPACT_HULL_COLOR = 0xff6b5e;
+const SPECIES_SPAWN_Y = ENCOUNTER_SPAWN_Y;
+const SPECIES_DESPAWN_Y = ENCOUNTER_DESPAWN_Y;
 const LANE_X_BY_NAME: Record<EncounterLane, number> = {
   center: GAME_WIDTH / 2,
   leftOuter: 78,
@@ -111,6 +148,8 @@ const MARINE_SNOW_LAYOUT = [
   { x: 12, y: 570, radius: 1, speed: 34, alpha: 0.22, color: 0x74f2d0 },
 ] as const;
 
+const SPECIES_CATALOG = speciesCatalogData as readonly CatalogSpeciesRecord[];
+
 /** Playfield presentation for the Abyssal Field Console shell. */
 export class GameScene extends Phaser.Scene {
   private player: Phaser.GameObjects.Container | undefined;
@@ -127,6 +166,12 @@ export class GameScene extends Phaser.Scene {
   private encounterScheduleState = createInitialEncounterScheduleState();
   private encounters: EncounterObject[] = [];
   private encounterSequence = 0;
+  private speciesScheduleState = createInitialSpeciesScheduleState();
+  private speciesEncounters: SpeciesObject[] = [];
+  private speciesSequence = 0;
+  private discoveredSpecies = new Set<string>();
+  private collectedSpecies: Record<string, number> = {};
+  private speciesScore = 0;
   private invulnerabilityRemainingSeconds = 0;
   private playerImpactRemainingSeconds = 0;
   private encounterEventRemainingSeconds = 0;
@@ -137,6 +182,14 @@ export class GameScene extends Phaser.Scene {
     super('GameScene');
   }
 
+  public preload(): void {
+    for (const asset of APPROVED_SPECIES_ASSETS) {
+      if (!this.textures.exists(asset.textureKey)) {
+        this.load.image(asset.textureKey, asset.url);
+      }
+    }
+  }
+
   public create(): void {
     this.reducedMotion = prefersReducedMotion();
     this.paused = false;
@@ -145,6 +198,12 @@ export class GameScene extends Phaser.Scene {
     this.destroyEncounterObjects();
     this.encounterScheduleState = createInitialEncounterScheduleState();
     this.encounterSequence = 0;
+    this.destroySpeciesObjects();
+    this.speciesScheduleState = createInitialSpeciesScheduleState();
+    this.speciesSequence = 0;
+    this.discoveredSpecies = new Set<string>();
+    this.collectedSpecies = {};
+    this.speciesScore = 0;
     this.invulnerabilityRemainingSeconds = 0;
     this.playerImpactRemainingSeconds = 0;
     this.encounterEventRemainingSeconds = 0;
@@ -331,6 +390,17 @@ export class GameScene extends Phaser.Scene {
     }
     this.updateEncounterObjects(nextProgression.elapsedSeconds);
 
+    const speciesScheduleUpdate = advanceSpeciesSpawnSchedule(
+      this.speciesScheduleState,
+      nextProgression.elapsedSeconds,
+    );
+    this.speciesScheduleState = speciesScheduleUpdate.state;
+    this.updateSpeciesObjects(nextProgression.elapsedSeconds);
+    for (const request of speciesScheduleUpdate.spawns) {
+      this.spawnSpecies(request, nextProgression.depthM, nextProgression.elapsedSeconds);
+    }
+    this.updateSpeciesObjects(nextProgression.elapsedSeconds);
+
     const joystickVector = this.joystick?.getVector();
     const input = joystickVector && joystickVector.magnitude > 0
       ? joystickVector
@@ -349,6 +419,7 @@ export class GameScene extends Phaser.Scene {
       GAME_HEIGHT - 198,
     );
 
+    this.resolveSpeciesInteractions();
     this.resolveEncounterCollisions();
   }
 
@@ -414,6 +485,206 @@ export class GameScene extends Phaser.Scene {
     this.encounters.push(encounter);
     display.x = LANE_X_BY_NAME[spawn.lane];
     display.y = ENCOUNTER_SPAWN_Y;
+  }
+
+  private spawnSpecies(
+    request: SpeciesSpawnRequest,
+    depthM: number,
+    elapsedSeconds: number,
+  ): void {
+    const species = selectSpeciesForDepth(
+      SPECIES_CATALOG,
+      APPROVED_SPECIES_ASSETS,
+      depthM,
+      request.ordinal,
+    );
+    if (
+      !species ||
+      !canSpawnSpecies(this.speciesEncounters.length, MAX_ACTIVE_SPECIES)
+    ) {
+      return;
+    }
+
+    const position = chooseNonOverlappingSpeciesPosition(
+      request.ordinal,
+      SPECIES_SPAWN_Y,
+      SPECIES_COLLISION_RADIUS,
+      this.getOccupiedSpawnCircles(),
+    );
+    if (!position) {
+      return;
+    }
+
+    const display = this.createSpeciesDisplay(species);
+    const encounter: SpeciesObject = {
+      display,
+      species,
+      spawnAtSeconds: request.atSeconds,
+      spawnX: position.x,
+      speedPxPerSecond: getSpeciesScrollSpeed(species.behavior),
+      radius: position.radius,
+      sequence: this.speciesSequence,
+      interactionState: {
+        discovered: false,
+        collected: false,
+      },
+    };
+    this.speciesSequence += 1;
+    this.speciesEncounters.push(encounter);
+    display.x = position.x;
+    display.y = SPECIES_SPAWN_Y;
+    this.updateSpeciesObjects(elapsedSeconds);
+  }
+
+  private createSpeciesDisplay(
+    species: SpawnableSpecies,
+  ): Phaser.GameObjects.Container {
+    const halo = this.add
+      .circle(0, 0, SPECIES_COLLISION_RADIUS + 7, 0x04121a)
+      .setAlpha(0.38)
+      .setStrokeStyle(1, 0x6bd9e8, 0.68);
+    const image = this.add
+      .image(0, 0, species.textureKey)
+      .setAlpha(0.96);
+    const imageWidth = Math.max(1, image.width);
+    const imageHeight = Math.max(1, image.height);
+    image.setScale(Math.min(48 / imageWidth, 48 / imageHeight));
+
+    const display = this.add.container(0, 0);
+    display.add([halo, image]);
+    display.setName(species.acceptedScientificName);
+    return display;
+  }
+
+  private getOccupiedSpawnCircles(): Circle[] {
+    return [
+      ...this.encounters.map((encounter) => ({
+        x: encounter.display.x,
+        y: encounter.display.y,
+        radius: encounter.radius,
+      })),
+      ...this.speciesEncounters.map((encounter) => ({
+        x: encounter.display.x,
+        y: encounter.display.y,
+        radius: encounter.radius,
+      })),
+    ];
+  }
+
+  private updateSpeciesObjects(elapsedSeconds: number): void {
+    for (let index = this.speciesEncounters.length - 1; index >= 0; index -= 1) {
+      const encounter = this.speciesEncounters[index];
+      if (!encounter) {
+        continue;
+      }
+
+      const ageSeconds = Math.max(
+        0,
+        elapsedSeconds - encounter.spawnAtSeconds,
+      );
+      encounter.display.x = encounter.spawnX;
+      encounter.display.y = SPECIES_SPAWN_Y -
+        encounter.speedPxPerSecond * ageSeconds;
+
+      if (encounter.display.y <= SPECIES_DESPAWN_Y) {
+        this.removeSpeciesAt(index);
+      }
+    }
+  }
+
+  private resolveSpeciesInteractions(): void {
+    if (!this.player) {
+      return;
+    }
+
+    const playerCircle: Circle = {
+      x: this.player.x,
+      y: this.player.y,
+      radius: PLAYER_COLLISION_RADIUS,
+    };
+
+    for (let index = this.speciesEncounters.length - 1; index >= 0; index -= 1) {
+      const encounter = this.speciesEncounters[index];
+      if (!encounter) {
+        continue;
+      }
+
+      const result = resolveSpeciesInteraction(
+        encounter.interactionState,
+        playerCircle,
+        {
+          x: encounter.display.x,
+          y: encounter.display.y,
+          radius: encounter.radius,
+        },
+        encounter.species.score,
+      );
+      encounter.interactionState = result.nextState;
+      const key = encounter.species.acceptedScientificName;
+      const displayName = encounter.species.displayName;
+
+      if (result.discoveredNow) {
+        const isNewDiscovery = !this.discoveredSpecies.has(key);
+        this.discoveredSpecies.add(key);
+        this.persistSpeciesDiscovery(key);
+        if (isNewDiscovery) {
+          this.showEncounterEvent('SPECIES DETECTED / ' + displayName, 'species');
+          announce('生物を発見しました。' + displayName + '。');
+        }
+      }
+
+      if (!result.collectedNow) {
+        continue;
+      }
+
+      this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
+      this.persistSpeciesCollection(key);
+      this.speciesScore += result.scoreDelta;
+      this.showEncounterEvent(
+        'SPECIES ACQUIRED / +' + String(result.scoreDelta),
+        'species',
+      );
+      announce(
+        '生物を獲得しました。' + displayName + '、' +
+          String(result.scoreDelta) + '点。',
+      );
+      this.removeSpeciesAt(index);
+    }
+  }
+
+  private persistSpeciesDiscovery(acceptedScientificName: string): void {
+    const progress = recordSpeciesDiscovery(
+      readDiscoveryProgress(),
+      acceptedScientificName,
+    );
+    writeDiscoveryProgress(progress);
+    this.game.events.emit('shinkai:discovery-progress', progress);
+  }
+
+  private persistSpeciesCollection(acceptedScientificName: string): void {
+    const progress = recordSpeciesCollection(
+      readDiscoveryProgress(),
+      acceptedScientificName,
+    );
+    writeDiscoveryProgress(progress);
+    this.game.events.emit('shinkai:discovery-progress', progress);
+  }
+
+  private removeSpeciesAt(index: number): void {
+    const encounter = this.speciesEncounters[index];
+    if (!encounter) {
+      return;
+    }
+
+    this.speciesEncounters.splice(index, 1);
+    encounter.display.destroy();
+  }
+
+  private destroySpeciesObjects(): void {
+    for (const encounter of this.speciesEncounters) {
+      encounter.display.destroy();
+    }
+    this.speciesEncounters.length = 0;
   }
 
   private createRockDisplay(
@@ -615,7 +886,7 @@ export class GameScene extends Phaser.Scene {
 
   private showEncounterEvent(
     message: string,
-    kind: 'impact' | 'recovery',
+    kind: 'impact' | 'recovery' | 'species',
   ): void {
     this.encounterEventRemainingSeconds = ENCOUNTER_EVENT_DURATION_SECONDS;
     const eventElement = document.getElementById('encounter-event');
@@ -776,7 +1047,14 @@ export class GameScene extends Phaser.Scene {
     this.destroyEncounterObjects();
     this.clearEncounterEvent();
 
-    const result = createDiveResultSnapshot(this.diveProgression);
+    const result = createDiveResultSnapshot(this.diveProgression, {
+      score: this.speciesScore,
+      discoveredCount: this.discoveredSpecies.size,
+      collectedCount: Object.values(this.collectedSpecies).reduce(
+        (total, count) => total + count,
+        0,
+      ),
+    });
     this.scene.start('ResultScene', { result });
   }
 
@@ -835,6 +1113,7 @@ export class GameScene extends Phaser.Scene {
   private readonly cleanup = (): void => {
     this.game.events.off('shinkai:lifecycle', this.handleLifecycleStatus);
     this.destroyEncounterObjects();
+    this.destroySpeciesObjects();
     this.clearEncounterEvent();
     this.player = undefined;
     this.playerHull = undefined;

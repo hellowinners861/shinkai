@@ -6,11 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "prepare:assets": "node scripts/prepareCommonsAssets.mjs",
+    "check:assets": "node scripts/checkAssets.mjs",
+    "generate:species": "node scripts/generateSpeciesCatalog.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run check:assets && npm run build"
   },
   "dependencies": {
     "phaser": "^3.90.0"

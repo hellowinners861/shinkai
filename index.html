@@ -33,6 +33,13 @@
                 <span>潜航を開始</span>
                 <span class='button-arrow' aria-hidden='true'>↗</span>
               </button>
+              <button
+                id='title-catalog-button'
+                class='shell-button catalog-open-button'
+                type='button'
+              >
+                図鑑を開く
+              </button>
             </div>
           </div>
         </section>
@@ -160,6 +167,13 @@
                   再挑戦
                 </button>
                 <button
+                  id='result-catalog-button'
+                  class='shell-button result-button--secondary'
+                  type='button'
+                >
+                  図鑑を見る
+                </button>
+                <button
                   id='result-title-button'
                   class='shell-button result-button--secondary'
                   type='button'
@@ -168,6 +182,46 @@
                 </button>
               </div>
             </article>
+          </div>
+        </section>
+        <section
+          id='catalog-ui'
+          class='html-ui-layer'
+          hidden
+          aria-labelledby='catalog-heading'
+        >
+          <div class='catalog-layout'>
+            <header class='catalog-header'>
+              <div>
+                <p class='catalog-kicker'>PELAGIC RESEARCH UNIT / SPECIES LOG</p>
+                <h1 id='catalog-heading'>深海生物図鑑</h1>
+                <p class='catalog-description'>潜航で発見・獲得した生物の調査記録</p>
+              </div>
+              <button
+                id='catalog-back-button'
+                class='shell-button catalog-back-button'
+                type='button'
+              >
+                戻る
+              </button>
+            </header>
+            <p
+              class='catalog-progress'
+              data-catalog-progress
+              role='status'
+              aria-live='polite'
+            ></p>
+            <nav
+              class='catalog-categories'
+              data-catalog-categories
+              aria-label='図鑑カテゴリ'
+            ></nav>
+            <div
+              class='catalog-list'
+              data-catalog-list
+              role='list'
+              aria-label='深海生物の記録'
+            ></div>
           </div>
         </section>
       </div>

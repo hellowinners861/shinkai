@@ -1,6 +1,16 @@
 import Phaser from 'phaser';
 
 import {
+  isCatalogCategory,
+  renderCatalog,
+  type CatalogCategory,
+} from './catalog/catalogUi';
+import {
+  readDiscoveryProgress,
+  writeDiscoveryProgress,
+  type DiscoveryProgress,
+} from './catalog/discoveryStore';
+import {
   getCappedDevicePixelRatio,
   MIN_VIEWPORT_HEIGHT,
   MIN_VIEWPORT_WIDTH,
@@ -52,8 +62,15 @@ const pauseButton = document.getElementById('pause-button');
 const audioButton = document.getElementById('audio-button');
 const resultRetryButton = document.getElementById('result-retry-button');
 const resultTitleButton = document.getElementById('result-title-button');
+const titleCatalogButton = document.getElementById('title-catalog-button');
+const resultCatalogButton = document.getElementById('result-catalog-button');
+const catalogUi = document.getElementById('catalog-ui');
+const catalogBackButton = document.getElementById('catalog-back-button');
 
 let audioMuted = readAudioMuted();
+let discoveryProgress: DiscoveryProgress = readDiscoveryProgress();
+let selectedCatalogCategory: CatalogCategory = 'all';
+let catalogOrigin: 'title' | 'result' = 'title';
 
 function getViewportSize(): { width: number; height: number } {
   const viewport = window.visualViewport;
@@ -72,6 +89,44 @@ let lifecycleState = createMobileLifecycleState({
 
 function setHidden(element: HTMLElement | null, hidden: boolean): void {
   element?.toggleAttribute('hidden', hidden);
+}
+
+function renderCurrentCatalog(): void {
+  if (!catalogUi) {
+    return;
+  }
+
+  selectedCatalogCategory = renderCatalog(
+    catalogUi,
+    discoveryProgress,
+    selectedCatalogCategory,
+  );
+}
+
+function openCatalog(origin: 'title' | 'result'): void {
+  catalogOrigin = origin;
+  setHidden(document.getElementById('title-ui'), true);
+  setHidden(document.getElementById('game-ui'), true);
+  setHidden(document.getElementById('result-ui'), true);
+  setHidden(catalogUi, false);
+  renderCurrentCatalog();
+  announce('図鑑を開きました。');
+}
+
+function closeCatalog(): void {
+  setHidden(catalogUi, true);
+  setHidden(document.getElementById('title-ui'), catalogOrigin !== 'title');
+  setHidden(document.getElementById('result-ui'), catalogOrigin !== 'result');
+  announce(catalogOrigin === 'title' ? 'タイトルへ戻りました。' : '潜航結果へ戻りました。');
+}
+
+function handleDiscoveryProgress(progress: DiscoveryProgress): void {
+  discoveryProgress = progress;
+  game.registry.set('shinkai.discoveryProgress', progress);
+  writeDiscoveryProgress(progress);
+  if (!catalogUi?.hasAttribute('hidden')) {
+    renderCurrentCatalog();
+  }
 }
 
 function syncAudioButton(): void {
@@ -188,6 +243,30 @@ resultTitleButton?.addEventListener('click', () => {
   resultTitleButton.setAttribute('disabled', '');
   returnToTitle();
 });
+titleCatalogButton?.addEventListener('click', () => {
+  openCatalog('title');
+});
+resultCatalogButton?.addEventListener('click', () => {
+  openCatalog('result');
+});
+catalogBackButton?.addEventListener('click', closeCatalog);
+catalogUi?.addEventListener('click', (event) => {
+  if (!(event.target instanceof Element)) {
+    return;
+  }
+
+  const categoryButton = event.target.closest<HTMLButtonElement>(
+    '[data-catalog-category]',
+  );
+  const category = categoryButton?.dataset.catalogCategory;
+  if (!isCatalogCategory(category)) {
+    return;
+  }
+
+  selectedCatalogCategory = category;
+  renderCurrentCatalog();
+});
+game.events.on('shinkai:discovery-progress', handleDiscoveryProgress);
 game.events.on('shinkai:boot-ready', applyLifecycleState);
 
 pauseButton?.addEventListener('click', () => {
@@ -237,6 +316,8 @@ window.addEventListener('orientationchange', syncOrientation, { passive: true })
 window.visualViewport?.addEventListener('resize', syncOrientation, { passive: true });
 
 syncAudioButton();
+game.registry.set('shinkai.discoveryProgress', discoveryProgress);
+renderCurrentCatalog();
 installViewportListeners(game);
 window.setTimeout(syncOrientation, 0);
 

@@ -12,8 +12,8 @@ export interface GameSession {
   depth: number;
   fuel: number;
   score: number;
-  caughtFish: Record<string, number>;
-  discoveredFish: Set<string>;
+  collectedSpecies: Record<string, number>;
+  discoveredSpecies: Set<string>;
   elapsedSeconds: number;
 }
 
@@ -33,14 +33,25 @@ export interface DiveResultSnapshot {
   readonly reachedDepthM: number;
   readonly remainingFuel: number;
   readonly elapsedSeconds: number;
-  readonly score: 0;
-  readonly discoveredCount: 0;
-  readonly collectedCount: 0;
+  readonly score: number;
+  readonly discoveredCount: number;
+  readonly collectedCount: number;
 }
 
-/** Creates the zero-score MVP result snapshot for a terminal dive. */
+export interface DiveResultStats {
+  score: number;
+  discoveredCount: number;
+  collectedCount: number;
+}
+
+/** Creates a frozen result snapshot for a terminal dive. */
 export function createDiveResultSnapshot(
   state: DiveProgressionState,
+  stats: DiveResultStats = {
+    score: 0,
+    discoveredCount: 0,
+    collectedCount: 0,
+  },
 ): DiveResultSnapshot {
   if (state.status === "descending") {
     throw new Error("A result snapshot requires a terminal dive state");
@@ -51,8 +62,16 @@ export function createDiveResultSnapshot(
     reachedDepthM: state.depthM,
     remainingFuel: state.fuel,
     elapsedSeconds: state.elapsedSeconds,
-    score: 0 as const,
-    discoveredCount: 0 as const,
-    collectedCount: 0 as const,
+    score: normalizeNonNegativeNumber(stats.score),
+    discoveredCount: normalizeNonNegativeInteger(stats.discoveredCount),
+    collectedCount: normalizeNonNegativeInteger(stats.collectedCount),
   });
+}
+
+function normalizeNonNegativeNumber(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+function normalizeNonNegativeInteger(value: number): number {
+  return Math.floor(normalizeNonNegativeNumber(value));
 }
