@@ -99,6 +99,56 @@ button {
   pointer-events: none;
 }
 
+.impact-feedback {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(255, 70, 70, 0.22);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.impact-feedback.is-active {
+  animation: impact-red-flash 280ms ease-out both;
+}
+
+.impact-shake {
+  animation: impact-shake 220ms ease-out both;
+}
+
+@keyframes impact-red-flash {
+  0% {
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.22;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes impact-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  25% {
+    translate: -3px 1px;
+  }
+
+  50% {
+    translate: 3px -1px;
+  }
+
+  75% {
+    translate: -2px 0;
+  }
+}
+
 .html-ui-layer {
   position: absolute;
   inset: 0;
@@ -290,7 +340,7 @@ button {
   right: calc(var(--ui-right) + 94px);
   left: var(--ui-left);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: clamp(0.45rem, 2.5vw, 0.9rem);
   min-width: 0;
@@ -351,6 +401,10 @@ button {
 
 .telemetry-item--fuel {
   gap: 0.2rem;
+}
+
+.telemetry-item--score {
+  min-width: 3.2rem;
 }
 
 .telemetry-label,
@@ -1082,6 +1136,10 @@ button {
     font-size: 0.43rem;
   }
 
+  .telemetry-item--score {
+    min-width: 2.8rem;
+  }
+
   .telemetry-item strong {
     font-size: 0.68rem;
   }
@@ -1129,5 +1187,14 @@ button {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .impact-feedback.is-active {
+    animation: none;
+    opacity: 0.22;
+  }
+
+  .impact-shake {
+    animation: none;
   }
 }

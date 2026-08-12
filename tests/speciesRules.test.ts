@@ -3,11 +3,19 @@ import { describe, expect, it } from 'vitest';
 import {
   advanceSpeciesSpawnSchedule,
   chooseNonOverlappingSpeciesPosition,
+  chooseNonOverlappingSpeciesMotionPosition,
   createInitialSpeciesScheduleState,
+  createSpeciesMotionPlan,
   getApprovedSpeciesAtDepth,
   getDueSpeciesSpawnRequests,
+  getSpeciesMotionPattern,
+  getSpeciesMotionPatternForSpecies,
+  getSpeciesMotionPosition,
   resolveSpeciesInteraction,
   selectSpeciesForDepth,
+  hasSpeciesMotionExited,
+  SPECIES_MOTION_BOUNDS,
+  SPECIES_MOTION_PATTERNS,
   type CatalogSpeciesRecord,
   type SpeciesAssetManifestEntry,
 } from '../src/game/speciesRules';
@@ -116,6 +124,60 @@ describe('species encounter rules', () => {
         [225, 320],
       ),
     ).toBeUndefined();
+  });
+
+  it('cycles every motion pattern deterministically by ordinal', () => {
+    expect(
+      Array.from({ length: SPECIES_MOTION_PATTERNS.length * 2 }, (_, ordinal) =>
+        getSpeciesMotionPattern(ordinal),
+      ),
+    ).toEqual([...SPECIES_MOTION_PATTERNS, ...SPECIES_MOTION_PATTERNS]);
+
+    for (const sourceCatalogId of ['F001', 'F007', 'F008', 'F010']) {
+      const patterns = new Set(
+        Array.from({ length: SPECIES_MOTION_PATTERNS.length }, (_, ordinal) =>
+          getSpeciesMotionPatternForSpecies({ sourceCatalogId }, ordinal),
+        ),
+      );
+      expect(patterns.size).toBeGreaterThan(1);
+    }
+  });
+
+  it('plans off-screen entry and exit for all four directions', () => {
+    for (const pattern of SPECIES_MOTION_PATTERNS) {
+      const plan = createSpeciesMotionPlan(pattern, 225, 80, 20);
+      const start = plan.start;
+      const end = plan.end;
+      const position = getSpeciesMotionPosition(plan, 1);
+
+      expect(plan.velocity).toEqual({
+        x: plan.direction.x * 80,
+        y: plan.direction.y * 80,
+      });
+      expect(hasSpeciesMotionExited(plan, start)).toBe(false);
+      expect(hasSpeciesMotionExited(plan, end)).toBe(true);
+      expect(position).not.toEqual(start);
+
+      if (pattern === 'left_to_right' || pattern === 'right_to_left') {
+        expect(start.x < SPECIES_MOTION_BOUNDS.left ||
+          start.x > SPECIES_MOTION_BOUNDS.right).toBe(true);
+      } else {
+        expect(start.y < SPECIES_MOTION_BOUNDS.top ||
+          start.y > SPECIES_MOTION_BOUNDS.bottom).toBe(true);
+      }
+    }
+  });
+
+  it('keeps horizontal starts non-overlapping and preserves their lane', () => {
+    const position = chooseNonOverlappingSpeciesMotionPosition(
+      2,
+      'left_to_right',
+      20,
+      [{ x: -20, y: 150, radius: 20 }],
+      [150, 220],
+    );
+
+    expect(position).toEqual({ x: -20, y: 220, radius: 20 });
   });
 
   it('discovers once in the light range and collects once on contact', () => {

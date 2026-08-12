@@ -37,15 +37,20 @@ import {
 import {
   advanceSpeciesSpawnSchedule,
   canSpawnSpecies,
-  chooseNonOverlappingSpeciesPosition,
+  chooseNonOverlappingSpeciesMotionPosition,
   createInitialSpeciesScheduleState,
+  createSpeciesMotionPlan,
+  getSpeciesMotionPatternForSpecies,
+  getSpeciesMotionPosition,
   getSpeciesScrollSpeed,
+  hasSpeciesMotionExited,
   MAX_ACTIVE_SPECIES,
   resolveSpeciesInteraction,
   selectSpeciesForDepth,
   SPECIES_COLLISION_RADIUS,
   type CatalogSpeciesRecord,
   type SpeciesInteractionState,
+  type SpeciesMotionPlan,
   type SpeciesSpawnRequest,
   type SpawnableSpecies,
 } from '../game/speciesRules';
@@ -82,8 +87,7 @@ interface SpeciesObject {
   display: Phaser.GameObjects.Container;
   species: SpawnableSpecies;
   spawnAtSeconds: number;
-  spawnX: number;
-  speedPxPerSecond: number;
+  motionPlan: SpeciesMotionPlan;
   radius: number;
   sequence: number;
   interactionState: SpeciesInteractionState;
@@ -93,6 +97,7 @@ interface HudSnapshot {
   depthText: string;
   fuelText: string;
   fuelMeterValue: string;
+  scoreText: string;
   statusPrimary: string;
   statusSecondary: string;
 }
@@ -107,10 +112,9 @@ const MAX_ROCKS = 6;
 const MAX_RECOVERY_ITEMS = 2;
 const ENCOUNTER_EVENT_DURATION_SECONDS = 1.1;
 const PLAYER_IMPACT_DISPLAY_SECONDS = 0.45;
+const IMPACT_FEEDBACK_DURATION_MS = 280;
 const NORMAL_HULL_COLOR = 0x74f2d0;
 const IMPACT_HULL_COLOR = 0xff6b5e;
-const SPECIES_SPAWN_Y = ENCOUNTER_SPAWN_Y;
-const SPECIES_DESPAWN_Y = ENCOUNTER_DESPAWN_Y;
 const LANE_X_BY_NAME: Record<EncounterLane, number> = {
   center: GAME_WIDTH / 2,
   leftOuter: 78,
@@ -175,6 +179,7 @@ export class GameScene extends Phaser.Scene {
   private invulnerabilityRemainingSeconds = 0;
   private playerImpactRemainingSeconds = 0;
   private encounterEventRemainingSeconds = 0;
+  private impactFeedbackTimer: number | undefined;
   private marineSnow: MarineSnowParticle[] = [];
   private hudSnapshot: HudSnapshot | undefined;
 
@@ -209,6 +214,7 @@ export class GameScene extends Phaser.Scene {
     this.encounterEventRemainingSeconds = 0;
     this.marineSnow = [];
     this.hudSnapshot = undefined;
+    this.clearImpactFeedback();
     const lifecycleStatus = this.game.registry.get(
       'shinkai.lifecycleStatus',
     ) as MobileLifecycleStatus | undefined;
@@ -505,9 +511,10 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const position = chooseNonOverlappingSpeciesPosition(
+    const pattern = getSpeciesMotionPatternForSpecies(species, request.ordinal);
+    const position = chooseNonOverlappingSpeciesMotionPosition(
       request.ordinal,
-      SPECIES_SPAWN_Y,
+      pattern,
       SPECIES_COLLISION_RADIUS,
       this.getOccupiedSpawnCircles(),
     );
@@ -515,13 +522,21 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const display = this.createSpeciesDisplay(species);
+    const laneCoordinate = pattern === 'left_to_right' || pattern === 'right_to_left'
+      ? position.y
+      : position.x;
+    const motionPlan = createSpeciesMotionPlan(
+      pattern,
+      laneCoordinate,
+      getSpeciesScrollSpeed(species.behavior),
+      position.radius,
+    );
+    const display = this.createSpeciesDisplay(species, motionPlan.direction.x);
     const encounter: SpeciesObject = {
       display,
       species,
       spawnAtSeconds: request.atSeconds,
-      spawnX: position.x,
-      speedPxPerSecond: getSpeciesScrollSpeed(species.behavior),
+      motionPlan,
       radius: position.radius,
       sequence: this.speciesSequence,
       interactionState: {
@@ -531,13 +546,14 @@ export class GameScene extends Phaser.Scene {
     };
     this.speciesSequence += 1;
     this.speciesEncounters.push(encounter);
-    display.x = position.x;
-    display.y = SPECIES_SPAWN_Y;
+    display.x = motionPlan.start.x;
+    display.y = motionPlan.start.y;
     this.updateSpeciesObjects(elapsedSeconds);
   }
 
   private createSpeciesDisplay(
     species: SpawnableSpecies,
+    horizontalDirection: number,
   ): Phaser.GameObjects.Container {
     const halo = this.add
       .circle(0, 0, SPECIES_COLLISION_RADIUS + 7, 0x04121a)
@@ -549,6 +565,7 @@ export class GameScene extends Phaser.Scene {
     const imageWidth = Math.max(1, image.width);
     const imageHeight = Math.max(1, image.height);
     image.setScale(Math.min(48 / imageWidth, 48 / imageHeight));
+    image.setFlipX(horizontalDirection < 0);
 
     const display = this.add.container(0, 0);
     display.add([halo, image]);
@@ -582,11 +599,14 @@ export class GameScene extends Phaser.Scene {
         0,
         elapsedSeconds - encounter.spawnAtSeconds,
       );
-      encounter.display.x = encounter.spawnX;
-      encounter.display.y = SPECIES_SPAWN_Y -
-        encounter.speedPxPerSecond * ageSeconds;
+      const position = getSpeciesMotionPosition(
+        encounter.motionPlan,
+        ageSeconds,
+      );
+      encounter.display.x = position.x;
+      encounter.display.y = position.y;
 
-      if (encounter.display.y <= SPECIES_DESPAWN_Y) {
+      if (hasSpeciesMotionExited(encounter.motionPlan, position)) {
         this.removeSpeciesAt(index);
       }
     }
@@ -640,6 +660,7 @@ export class GameScene extends Phaser.Scene {
       this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
       this.persistSpeciesCollection(key);
       this.speciesScore += result.scoreDelta;
+      this.updateHud();
       this.showEncounterEvent(
         'SPECIES ACQUIRED / +' + String(result.scoreDelta),
         'species',
@@ -805,6 +826,7 @@ export class GameScene extends Phaser.Scene {
         this.invulnerabilityRemainingSeconds = ROCK_INVULNERABILITY_SECONDS;
         this.playerImpactRemainingSeconds = PLAYER_IMPACT_DISPLAY_SECONDS;
         this.playerHull?.setStrokeStyle(2, IMPACT_HULL_COLOR, 1);
+        this.triggerImpactFeedback();
         this.showEncounterEvent('HULL IMPACT / FUEL -10', 'impact');
         this.updateHud();
         announce('船体に衝突しました。燃料が10減少しました。');
@@ -903,6 +925,44 @@ export class GameScene extends Phaser.Scene {
     eventElement?.replaceChildren();
   }
 
+  private triggerImpactFeedback(): void {
+    this.clearImpactFeedback();
+
+    const feedbackElement = document.getElementById('impact-feedback');
+    if (feedbackElement) {
+      void feedbackElement.offsetWidth;
+      feedbackElement.classList.add('is-active');
+    }
+
+    if (!this.reducedMotion) {
+      const targets = document.querySelectorAll<HTMLElement>(
+        '#game-container > canvas, #game-ui .game-hud, #game-ui .game-actions, ' +
+        '#game-ui .dive-status, #game-ui .encounter-event',
+      );
+      targets.forEach((target) => {
+        void target.offsetWidth;
+        target.classList.add('impact-shake');
+      });
+    }
+
+    this.impactFeedbackTimer = window.setTimeout(() => {
+      this.clearImpactFeedback();
+    }, IMPACT_FEEDBACK_DURATION_MS);
+  }
+
+  private clearImpactFeedback(): void {
+    if (this.impactFeedbackTimer !== undefined) {
+      window.clearTimeout(this.impactFeedbackTimer);
+      this.impactFeedbackTimer = undefined;
+    }
+
+    document.getElementById('impact-feedback')?.classList.remove('is-active');
+    document.querySelectorAll<HTMLElement>(
+      '#game-container > canvas, #game-ui .game-hud, #game-ui .game-actions, ' +
+      '#game-ui .dive-status, #game-ui .encounter-event',
+    ).forEach((target) => target.classList.remove('impact-shake'));
+  }
+
   private updatePlayerImpact(seconds: number): void {
     this.playerImpactRemainingSeconds = Math.max(
       0,
@@ -981,6 +1041,7 @@ export class GameScene extends Phaser.Scene {
       depthText: `${String(depth).padStart(4, '0')} m`,
       fuelText: `${fuel.toFixed(1)}%`,
       fuelMeterValue: String(fuel),
+      scoreText: String(Math.max(0, Math.floor(this.speciesScore))),
       statusPrimary: statusText.primary,
       statusSecondary: statusText.secondary,
     };
@@ -1002,6 +1063,10 @@ export class GameScene extends Phaser.Scene {
       if (fuelFill instanceof HTMLElement) {
         fuelFill.style.width = `${snapshot.fuelMeterValue}%`;
       }
+    }
+
+    if (!this.hudSnapshot || this.hudSnapshot.scoreText !== snapshot.scoreText) {
+      document.getElementById('score-readout')?.replaceChildren(snapshot.scoreText);
     }
 
     if (
@@ -1115,6 +1180,7 @@ export class GameScene extends Phaser.Scene {
     this.destroyEncounterObjects();
     this.destroySpeciesObjects();
     this.clearEncounterEvent();
+    this.clearImpactFeedback();
     this.player = undefined;
     this.playerHull = undefined;
     this.resetInput();

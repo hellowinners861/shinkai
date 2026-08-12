@@ -9,6 +9,34 @@ export const MAX_ACTIVE_SPECIES = 6;
 export const SPECIES_COLLISION_RADIUS = 20;
 export const SPECIES_DETECTION_RADIUS = 112;
 
+export const SPECIES_MOTION_PATTERNS = [
+  'bottom_to_top',
+  'left_to_right',
+  'right_to_left',
+  'top_to_bottom',
+] as const;
+
+export type SpeciesMotionPattern = (typeof SPECIES_MOTION_PATTERNS)[number];
+
+/** The visible playfield bounds used by the current vertical species lanes. */
+export const SPECIES_MOTION_BOUNDS = {
+  left: 0,
+  right: 450,
+  top: 96,
+  bottom: 680,
+} as const;
+
+/** Stable lanes for species that cross the playfield horizontally. */
+export const SPECIES_MOTION_LANE_POSITIONS = [
+  150,
+  220,
+  290,
+  360,
+  430,
+  500,
+  570,
+] as const;
+
 export const SPECIES_SPAWN_X_POSITIONS = [
   52,
   110,
@@ -98,6 +126,20 @@ export interface SpeciesSpawnPosition {
   x: number;
   y: number;
   radius: number;
+}
+
+export interface SpeciesMotionPoint {
+  x: number;
+  y: number;
+}
+
+export interface SpeciesMotionPlan {
+  pattern: SpeciesMotionPattern;
+  start: SpeciesMotionPoint;
+  end: SpeciesMotionPoint;
+  direction: SpeciesMotionPoint;
+  velocity: SpeciesMotionPoint;
+  speedPxPerSecond: number;
 }
 
 export interface SpeciesInteractionState {
@@ -274,6 +316,130 @@ export function deterministicSpeciesUnit(
   return (value >>> 0) / 0x1_0000_0000;
 }
 
+/** Cycles through every supported path in a stable ordinal order. */
+export function getSpeciesMotionPattern(
+  spawnOrdinal: number,
+): SpeciesMotionPattern {
+  const normalizedOrdinal = normalizeOrdinal(spawnOrdinal);
+  return SPECIES_MOTION_PATTERNS[
+    normalizedOrdinal % SPECIES_MOTION_PATTERNS.length
+  ]!;
+}
+
+/** Offsets the cycle by species identity without introducing runtime randomness. */
+export function getSpeciesMotionPatternForSpecies(
+  species: { sourceCatalogId: string },
+  spawnOrdinal: number,
+): SpeciesMotionPattern {
+  const speciesOffset = getSpeciesPatternOffset(species.sourceCatalogId);
+  return getSpeciesMotionPattern(normalizeOrdinal(spawnOrdinal) + speciesOffset);
+}
+
+/** Creates a path plan from a fixed lane coordinate and a deterministic pattern. */
+export function createSpeciesMotionPlan(
+  pattern: SpeciesMotionPattern,
+  laneCoordinate: number,
+  speedPxPerSecond: number,
+  radius = SPECIES_COLLISION_RADIUS,
+): SpeciesMotionPlan {
+  const lane = Number.isFinite(laneCoordinate)
+    ? laneCoordinate
+    : SPECIES_MOTION_LANE_POSITIONS[0]!;
+  const safeSpeed = Number.isFinite(speedPxPerSecond)
+    ? Math.max(0, speedPxPerSecond)
+    : 0;
+  const safeRadius = Number.isFinite(radius) && radius >= 0
+    ? radius
+    : SPECIES_COLLISION_RADIUS;
+
+  let start: SpeciesMotionPoint;
+  let end: SpeciesMotionPoint;
+  let direction: SpeciesMotionPoint;
+  switch (pattern) {
+    case 'bottom_to_top':
+      start = { x: lane, y: SPECIES_MOTION_BOUNDS.bottom + safeRadius };
+      end = { x: lane, y: SPECIES_MOTION_BOUNDS.top - safeRadius };
+      direction = { x: 0, y: -1 };
+      break;
+    case 'left_to_right':
+      start = { x: SPECIES_MOTION_BOUNDS.left - safeRadius, y: lane };
+      end = { x: SPECIES_MOTION_BOUNDS.right + safeRadius, y: lane };
+      direction = { x: 1, y: 0 };
+      break;
+    case 'right_to_left':
+      start = { x: SPECIES_MOTION_BOUNDS.right + safeRadius, y: lane };
+      end = { x: SPECIES_MOTION_BOUNDS.left - safeRadius, y: lane };
+      direction = { x: -1, y: 0 };
+      break;
+    case 'top_to_bottom':
+      start = { x: lane, y: SPECIES_MOTION_BOUNDS.top - safeRadius };
+      end = { x: lane, y: SPECIES_MOTION_BOUNDS.bottom + safeRadius };
+      direction = { x: 0, y: 1 };
+      break;
+  }
+
+  return {
+    pattern,
+    start,
+    end,
+    direction,
+    velocity: {
+      x: direction.x * safeSpeed,
+      y: direction.y * safeSpeed,
+    },
+    speedPxPerSecond: safeSpeed,
+  };
+}
+
+/** Creates a complete plan directly from the spawn ordinal. */
+export function getSpeciesMotionPlan(
+  spawnOrdinal: number,
+  laneCoordinate: number,
+  speedPxPerSecond: number,
+  radius = SPECIES_COLLISION_RADIUS,
+): SpeciesMotionPlan {
+  return createSpeciesMotionPlan(
+    getSpeciesMotionPattern(spawnOrdinal),
+    laneCoordinate,
+    speedPxPerSecond,
+    radius,
+  );
+}
+
+/** Returns a point along a plan after the supplied non-negative age. */
+export function getSpeciesMotionPosition(
+  plan: SpeciesMotionPlan,
+  ageSeconds: number,
+): SpeciesMotionPoint {
+  const safeAge = Number.isFinite(ageSeconds) ? Math.max(0, ageSeconds) : 0;
+  const distance = plan.speedPxPerSecond * safeAge;
+  return {
+    x: plan.start.x + plan.direction.x * distance,
+    y: plan.start.y + plan.direction.y * distance,
+  };
+}
+
+/** Returns true once a species has crossed its plan's terminal boundary. */
+export function hasSpeciesMotionExited(
+  plan: SpeciesMotionPlan,
+  position: SpeciesMotionPoint,
+): boolean {
+  if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+    return false;
+  }
+
+  if (plan.direction.x > 0) {
+    return position.x >= plan.end.x;
+  }
+  if (plan.direction.x < 0) {
+    return position.x <= plan.end.x;
+  }
+  if (plan.direction.y > 0) {
+    return position.y >= plan.end.y;
+  }
+  return position.y <= plan.end.y;
+}
+
 /** Chooses the first stable lane that does not overlap an occupied circle. */
 export function chooseNonOverlappingSpeciesPosition(
   seed: number,
@@ -302,6 +468,46 @@ export function chooseNonOverlappingSpeciesPosition(
       continue;
     }
     const candidate = { x, y, radius };
+    if (occupied.every((circle) => !circlesOverlap(candidate, circle))) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
+/** Chooses a non-overlapping start point for any supported motion direction. */
+export function chooseNonOverlappingSpeciesMotionPosition(
+  seed: number,
+  pattern: SpeciesMotionPattern,
+  radius: number,
+  occupied: readonly Circle[],
+  lanePositions?: readonly number[],
+): SpeciesSpawnPosition | undefined {
+  const defaultLanes = pattern === 'left_to_right' || pattern === 'right_to_left'
+    ? SPECIES_MOTION_LANE_POSITIONS
+    : SPECIES_SPAWN_X_POSITIONS;
+  const lanes = lanePositions ?? defaultLanes;
+  if (
+    !Number.isFinite(seed) ||
+    !Number.isFinite(radius) ||
+    radius < 0 ||
+    lanes.length === 0
+  ) {
+    return undefined;
+  }
+
+  const offset = Math.floor(
+    deterministicSpeciesUnit(seed, lanes.length) * lanes.length,
+  );
+  for (let index = 0; index < lanes.length; index += 1) {
+    const lane = lanes[(index + offset) % lanes.length];
+    if (lane === undefined) {
+      continue;
+    }
+
+    const start = createSpeciesMotionPlan(pattern, lane, 1, radius).start;
+    const candidate = { ...start, radius };
     if (occupied.every((circle) => !circlesOverlap(candidate, circle))) {
       return candidate;
     }
@@ -349,7 +555,7 @@ export function resolveSpeciesInteraction(
   };
 }
 
-/** Maps catalog behavior to one of the fixed upward scroll speeds. */
+/** Maps catalog behavior to one of the fixed species movement speeds. */
 export function getSpeciesScrollSpeed(behavior: SpeciesBehavior): number {
   switch (behavior) {
     case 'swim':
@@ -361,6 +567,18 @@ export function getSpeciesScrollSpeed(behavior: SpeciesBehavior): number {
     case 'stationary':
       return 38;
   }
+}
+
+function normalizeOrdinal(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+}
+
+function getSpeciesPatternOffset(sourceCatalogId: string): number {
+  let hash = 0;
+  for (const character of sourceCatalogId) {
+    hash = Math.imul(hash, 31) + character.charCodeAt(0);
+  }
+  return (hash >>> 0) % SPECIES_MOTION_PATTERNS.length;
 }
 
 function isApprovedLocalAsset(

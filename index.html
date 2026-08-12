@@ -45,7 +45,7 @@
         </section>
 
         <section id='game-ui' class='html-ui-layer' hidden aria-label='潜航計器と操作'>
-          <div class='game-hud' aria-live='polite'>
+          <div class='game-hud'>
             <div class='telemetry-item telemetry-item--depth'>
               <span class='telemetry-label'>DEPTH</span>
               <strong id='depth-readout'>0000 m</strong>
@@ -67,7 +67,12 @@
                 <span id='fuel-meter-fill'></span>
               </div>
             </div>
+            <div class='telemetry-item telemetry-item--score' aria-label='生物スコア'>
+              <span class='telemetry-label'>SCORE</span>
+              <strong id='score-readout'>0</strong>
+            </div>
           </div>
+          <div id='impact-feedback' class='impact-feedback' aria-hidden='true'></div>
           <div
             id='encounter-event'
             class='encounter-event'
