@@ -46,7 +46,7 @@ import {
   hasSpeciesMotionExited,
   MAX_ACTIVE_SPECIES,
   resolveSpeciesInteraction,
-  selectSpeciesForDepth,
+  selectPixelSpeciesForDepth,
   SPECIES_COLLISION_RADIUS,
   type CatalogSpeciesRecord,
   type SpeciesInteractionState,
@@ -54,6 +54,10 @@ import {
   type SpeciesSpawnRequest,
   type SpawnableSpecies,
 } from '../game/speciesRules';
+import {
+  drawSpeciesPixelIcon,
+  getSpeciesPixelIconDefinitionForSpecies,
+} from '../game/speciesPixelIcons';
 import type { InputVector } from '../input/vector';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
@@ -498,9 +502,8 @@ export class GameScene extends Phaser.Scene {
     depthM: number,
     elapsedSeconds: number,
   ): void {
-    const species = selectSpeciesForDepth(
+    const species = selectPixelSpeciesForDepth(
       SPECIES_CATALOG,
-      APPROVED_SPECIES_ASSETS,
       depthM,
       request.ordinal,
     );
@@ -559,16 +562,19 @@ export class GameScene extends Phaser.Scene {
       .circle(0, 0, SPECIES_COLLISION_RADIUS + 7, 0x04121a)
       .setAlpha(0.38)
       .setStrokeStyle(1, 0x6bd9e8, 0.68);
-    const image = this.add
-      .image(0, 0, species.textureKey)
-      .setAlpha(0.96);
-    const imageWidth = Math.max(1, image.width);
-    const imageHeight = Math.max(1, image.height);
-    image.setScale(Math.min(48 / imageWidth, 48 / imageHeight));
-    image.setFlipX(horizontalDirection < 0);
+    const icon = this.add.graphics();
+    const definition = getSpeciesPixelIconDefinitionForSpecies({
+      sourceCatalogId: species.sourceCatalogId,
+      category: species.category,
+    });
+    if (definition) {
+      drawSpeciesPixelIcon(icon, definition);
+    }
+    icon.setAlpha(0.96);
+    icon.setScale(horizontalDirection < 0 ? -1 : 1, 1);
 
     const display = this.add.container(0, 0);
-    display.add([halo, image]);
+    display.add([halo, icon]);
     display.setName(species.acceptedScientificName);
     return display;
   }
