@@ -2,6 +2,7 @@ import {
   circlesOverlap,
   type Circle,
 } from './encounterRules';
+import type { SpeciesCatalogCategory } from './speciesPixelIcons';
 
 export const SPECIES_FIRST_SPAWN_SECONDS = 8;
 export const SPECIES_SPAWN_INTERVAL_SECONDS = 3.5;
@@ -72,6 +73,7 @@ export interface CatalogSpeciesRecord {
   slug: string;
   accepted_scientific_name: string;
   display_name: string;
+  category: SpeciesCatalogCategory;
   spawn_depth_min_m: number;
   spawn_depth_max_m: number;
   game_rarity: SpeciesRarity;
@@ -97,15 +99,16 @@ export interface SpawnableSpecies {
   slug: string;
   acceptedScientificName: string;
   displayName: string;
+  category: SpeciesCatalogCategory;
   depthMinM: number;
   depthMaxM: number;
   rarity: SpeciesRarity;
   weight: number;
   behavior: SpeciesBehavior;
   score: number;
-  assetId: string;
-  textureKey: string;
-  assetUrl: string;
+  assetId?: string;
+  textureKey?: string;
+  assetUrl?: string;
 }
 
 export interface SpeciesSpawnScheduleState {
@@ -261,6 +264,30 @@ export function getApprovedSpeciesAtDepth(
     );
 }
 
+/**
+ * Converts valid catalog rows to development-only pixel species without
+ * applying the release-approved photo asset gate.
+ */
+export function getPixelSpeciesAtDepth(
+  catalog: readonly CatalogSpeciesRecord[],
+  depthM: number,
+): SpawnableSpecies[] {
+  if (!Number.isFinite(depthM) || depthM < 0) {
+    return [];
+  }
+
+  return catalog
+    .map((entry) => toSpawnableSpecies(entry))
+    .filter((entry): entry is SpawnableSpecies =>
+      entry !== undefined &&
+      entry.depthMinM <= depthM &&
+      depthM <= entry.depthMaxM,
+    )
+    .sort((first, second) =>
+      first.sourceCatalogId.localeCompare(second.sourceCatalogId, 'en'),
+    );
+}
+
 /** Selects one eligible species with a stable weighted choice. */
 export function selectSpeciesForDepth(
   catalog: readonly CatalogSpeciesRecord[],
@@ -269,6 +296,24 @@ export function selectSpeciesForDepth(
   spawnOrdinal: number,
 ): SpawnableSpecies | undefined {
   const candidates = getApprovedSpeciesAtDepth(catalog, assets, depthM);
+  return selectWeightedSpeciesForDepth(candidates, depthM, spawnOrdinal);
+}
+
+/** Selects one development-only pixel species with the same stable weighting. */
+export function selectPixelSpeciesForDepth(
+  catalog: readonly CatalogSpeciesRecord[],
+  depthM: number,
+  spawnOrdinal: number,
+): SpawnableSpecies | undefined {
+  const candidates = getPixelSpeciesAtDepth(catalog, depthM);
+  return selectWeightedSpeciesForDepth(candidates, depthM, spawnOrdinal);
+}
+
+function selectWeightedSpeciesForDepth(
+  candidates: readonly SpawnableSpecies[],
+  depthM: number,
+  spawnOrdinal: number,
+): SpawnableSpecies | undefined {
   if (candidates.length === 0) {
     return undefined;
   }
@@ -593,7 +638,7 @@ function isApprovedLocalAsset(
 
 function toSpawnableSpecies(
   entry: CatalogSpeciesRecord,
-  asset: SpeciesAssetManifestEntry,
+  asset?: SpeciesAssetManifestEntry,
 ): SpawnableSpecies | undefined {
   if (
     !Number.isFinite(entry.spawn_depth_min_m) ||
@@ -609,19 +654,25 @@ function toSpawnableSpecies(
     return undefined;
   }
 
-  return {
+  const species: SpawnableSpecies = {
     sourceCatalogId: entry.source_catalog_id,
     slug: entry.slug,
     acceptedScientificName: entry.accepted_scientific_name,
     displayName: entry.display_name || entry.accepted_scientific_name,
+    category: entry.category,
     depthMinM: entry.spawn_depth_min_m,
     depthMaxM: entry.spawn_depth_max_m,
     rarity: entry.game_rarity,
     weight: entry.spawn_weight,
     behavior: entry.behavior_id,
     score: entry.score,
-    assetId: asset.assetId,
-    textureKey: asset.textureKey,
-    assetUrl: asset.url,
   };
+
+  if (asset) {
+    species.assetId = asset.assetId;
+    species.textureKey = asset.textureKey;
+    species.assetUrl = asset.url;
+  }
+
+  return species;
 }

@@ -1,6 +1,11 @@
 import speciesCatalogData from "../data/generated/speciesCatalog.json";
 import { APPROVED_SPECIES_ASSETS } from "../data/speciesAssets";
 import {
+  SPECIES_PIXEL_ICON_LOGICAL_VIEWPORT,
+  drawSpeciesPixelIconToCanvasContext,
+  getSpeciesPixelIconDefinitionForSpecies,
+} from "../game/speciesPixelIcons";
+import {
   countCollectedSpecies,
   type DiscoveryProgress,
 } from "./discoveryStore";
@@ -31,11 +36,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   shrimp: "エビ類",
   other_invertebrate: "その他の無脊椎動物",
 };
-const APPROVED_ASSET_BY_NAME = new Map<
+const APPROVED_ASSET_BY_CATALOG_ID = new Map<
   string,
   (typeof APPROVED_SPECIES_ASSETS)[number]
 >(
-  APPROVED_SPECIES_ASSETS.map((asset) => [asset.acceptedScientificName, asset]),
+  APPROVED_SPECIES_ASSETS.map((asset) => [asset.sourceCatalogId, asset]),
 );
 
 export function isCatalogCategory(value: string | undefined): value is CatalogCategory {
@@ -205,20 +210,82 @@ function createCatalogCard(
 }
 
 function createSpeciesMedia(entry: CatalogEntry, name: string): HTMLElement {
-  const media = document.createElement("div");
-  media.className = "catalog-card-media";
-  const asset = APPROVED_ASSET_BY_NAME.get(entry.accepted_scientific_name);
+  const asset = APPROVED_ASSET_BY_CATALOG_ID.get(entry.source_catalog_id);
   if (asset?.usageStatus === "release_approved") {
+    const media = document.createElement("figure");
+    media.className = "catalog-card-media catalog-photo-media";
     const image = document.createElement("img");
     image.src = asset.url;
     image.alt = `${name}の記録画像`;
     image.loading = "lazy";
-    media.appendChild(image);
+    media.append(image, createPhotoCredit(asset));
     return media;
   }
 
-  media.appendChild(createTextElement("span", "catalog-image-pending", "画像準備中"));
+  const media = document.createElement("div");
+  media.className = "catalog-card-media";
+  const definition = getSpeciesPixelIconDefinitionForSpecies({
+    sourceCatalogId: entry.source_catalog_id,
+    category: entry.category,
+  });
+  if (!definition) {
+    media.appendChild(
+      createTextElement(
+        "span",
+        "catalog-image-pending",
+        "ピクセルアイコンを表示できません",
+      ),
+    );
+    return media;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "catalog-species-icon";
+  canvas.width = SPECIES_PIXEL_ICON_LOGICAL_VIEWPORT.width;
+  canvas.height = SPECIES_PIXEL_ICON_LOGICAL_VIEWPORT.height;
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute(
+    "aria-label",
+    `${name}の種固有ピクセルアイコン（写真ではありません）`,
+  );
+  const context = canvas.getContext("2d");
+  if (!context) {
+    media.appendChild(
+      createTextElement(
+        "span",
+        "catalog-image-pending",
+        "ピクセルアイコンを表示できません",
+      ),
+    );
+    return media;
+  }
+
+  drawSpeciesPixelIconToCanvasContext(context, definition);
+  media.appendChild(canvas);
   return media;
+}
+
+function createPhotoCredit(
+  asset: (typeof APPROVED_SPECIES_ASSETS)[number],
+): HTMLElement {
+  const caption = document.createElement("figcaption");
+  caption.className = "catalog-photo-credit";
+  caption.append(
+    `作者: ${asset.creator} / ライセンス: `,
+    createExternalLink(asset.licenseUrl, asset.licenseId),
+    " / ",
+    createExternalLink(asset.sourcePageUrl, "出典ページ"),
+  );
+  return caption;
+}
+
+function createExternalLink(url: string, label: string): HTMLAnchorElement {
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noreferrer noopener";
+  link.textContent = label;
+  return link;
 }
 
 function createDetailList(details: readonly [string, string][]): HTMLElement {

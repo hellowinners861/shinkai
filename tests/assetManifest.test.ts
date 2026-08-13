@@ -1,4 +1,5 @@
 import manifestCsv from "../assets/manifest.csv?raw";
+import { APPROVED_SPECIES_ASSETS } from "../src/data/speciesAssets";
 import { describe, expect, it } from "vitest";
 
 function parseCsv(text: string): Record<string, string>[] {
@@ -56,6 +57,33 @@ describe("species asset manifest", () => {
       expect(row.commercial_use_allowed).toBe("true");
       expect(row.derivatives_allowed).toBe("true");
       expect(row.redistribution_allowed).toBe("true");
+    }
+  });
+
+  it("keeps the four catalog photo credits joined by source_catalog_id", () => {
+    const approvedRows = rows.filter((row) => row.usage_status === "release_approved");
+    const rowsByCatalogId = new Map(
+      approvedRows.map((row) => [row.source_catalog_id, row]),
+    );
+
+    expect(APPROVED_SPECIES_ASSETS).toHaveLength(approvedRows.length);
+    expect(new Set(APPROVED_SPECIES_ASSETS.map((asset) => asset.sourceCatalogId))).toEqual(
+      new Set(approvedRows.map((row) => row.source_catalog_id)),
+    );
+    for (const asset of APPROVED_SPECIES_ASSETS) {
+      const row = rowsByCatalogId.get(asset.sourceCatalogId);
+      expect(row).toBeDefined();
+      expect({
+        sourcePageUrl: asset.sourcePageUrl,
+        creator: asset.creator,
+        licenseId: asset.licenseId,
+        licenseUrl: asset.licenseUrl,
+      }).toEqual({
+        sourcePageUrl: row?.source_page_url,
+        creator: row?.creator,
+        licenseId: row?.license_id,
+        licenseUrl: row?.license_url,
+      });
     }
   });
 });

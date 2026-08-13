@@ -8,10 +8,12 @@ import {
   createSpeciesMotionPlan,
   getApprovedSpeciesAtDepth,
   getDueSpeciesSpawnRequests,
+  getPixelSpeciesAtDepth,
   getSpeciesMotionPattern,
   getSpeciesMotionPatternForSpecies,
   getSpeciesMotionPosition,
   resolveSpeciesInteraction,
+  selectPixelSpeciesForDepth,
   selectSpeciesForDepth,
   hasSpeciesMotionExited,
   SPECIES_MOTION_BOUNDS,
@@ -26,6 +28,7 @@ const catalog: CatalogSpeciesRecord[] = [
     slug: 'pelican-eel',
     accepted_scientific_name: 'Eurypharynx pelecanoides',
     display_name: 'フクロウナギ',
+    category: 'fish',
     spawn_depth_min_m: 500,
     spawn_depth_max_m: 6_000,
     game_rarity: 'legendary',
@@ -38,6 +41,7 @@ const catalog: CatalogSpeciesRecord[] = [
     slug: 'long-snouted-lancetfish',
     accepted_scientific_name: 'Alepisaurus ferox',
     display_name: 'ミズウオ',
+    category: 'fish',
     spawn_depth_min_m: 200,
     spawn_depth_max_m: 1_830,
     game_rarity: 'common',
@@ -73,12 +77,36 @@ describe('species encounter rules', () => {
     expect(getApprovedSpeciesAtDepth(catalog, unapproved, 600)).toEqual([]);
   });
 
+  it('makes catalog species available to pixel selection without approved assets', () => {
+    expect(
+      getPixelSpeciesAtDepth(catalog, 600).map(
+        (species) => species.sourceCatalogId,
+      ),
+    ).toEqual(['F001', 'F008']);
+    expect(selectPixelSpeciesForDepth(catalog, 600, 7)).toMatchObject({
+      sourceCatalogId: expect.any(String),
+    });
+    expect(getPixelSpeciesAtDepth(catalog, 600)[0]).not.toHaveProperty('assetId');
+  });
+
+  it('excludes invalid catalog rows from pixel candidates', () => {
+    const invalid = [
+      { ...catalog[0]!, spawn_weight: 0 },
+      { ...catalog[1]!, spawn_depth_min_m: 2_000, spawn_depth_max_m: 1_000 },
+    ];
+
+    expect(getPixelSpeciesAtDepth([...catalog, ...invalid], 600)).toEqual(
+      getPixelSpeciesAtDepth(catalog, 600),
+    );
+  });
+
   it('selects deterministically while preserving catalog rarity, weight, behavior, and score', () => {
     const first = selectSpeciesForDepth(catalog, assets, 600, 7);
     const second = selectSpeciesForDepth(catalog, assets, 600, 7);
 
     expect(first).toEqual(second);
     expect(first).toMatchObject({
+      category: 'fish',
       rarity: expect.any(String),
       weight: expect.any(Number),
       behavior: 'swim',
