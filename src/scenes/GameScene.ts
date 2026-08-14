@@ -54,6 +54,7 @@ import {
   type SpeciesSpawnRequest,
   type SpawnableSpecies,
 } from '../game/speciesRules';
+import { getSpeciesEncounterPresentation } from '../game/encounterPresentation';
 import {
   drawSpeciesPixelIcon,
   getSpeciesPixelIconDefinitionForSpecies,
@@ -177,6 +178,7 @@ export class GameScene extends Phaser.Scene {
   private speciesScheduleState = createInitialSpeciesScheduleState();
   private speciesEncounters: SpeciesObject[] = [];
   private speciesSequence = 0;
+  private knownSpecies = new Set<string>();
   private discoveredSpecies = new Set<string>();
   private collectedSpecies: Record<string, number> = {};
   private speciesScore = 0;
@@ -210,6 +212,7 @@ export class GameScene extends Phaser.Scene {
     this.destroySpeciesObjects();
     this.speciesScheduleState = createInitialSpeciesScheduleState();
     this.speciesSequence = 0;
+    this.knownSpecies = new Set(readDiscoveryProgress().discoveredSpecies);
     this.discoveredSpecies = new Set<string>();
     this.collectedSpecies = {};
     this.speciesScore = 0;
@@ -234,10 +237,10 @@ export class GameScene extends Phaser.Scene {
 
     const background = this.add.graphics();
     background.fillGradientStyle(
-      0x0a2b36,
-      0x071f2a,
-      0x02070b,
-      0x02070b,
+      0x0d3440,
+      0x092632,
+      0x041016,
+      0x041016,
       1,
     );
     background.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -558,10 +561,6 @@ export class GameScene extends Phaser.Scene {
     species: SpawnableSpecies,
     horizontalDirection: number,
   ): Phaser.GameObjects.Container {
-    const halo = this.add
-      .circle(0, 0, SPECIES_COLLISION_RADIUS + 7, 0x04121a)
-      .setAlpha(0.38)
-      .setStrokeStyle(1, 0x6bd9e8, 0.68);
     const icon = this.add.graphics();
     const definition = getSpeciesPixelIconDefinitionForSpecies({
       sourceCatalogId: species.sourceCatalogId,
@@ -574,7 +573,7 @@ export class GameScene extends Phaser.Scene {
     icon.setScale(horizontalDirection < 0 ? -1 : 1, 1);
 
     const display = this.add.container(0, 0);
-    display.add([halo, icon]);
+    display.add(icon);
     display.setName(species.acceptedScientificName);
     return display;
   }
@@ -648,34 +647,37 @@ export class GameScene extends Phaser.Scene {
       encounter.interactionState = result.nextState;
       const key = encounter.species.acceptedScientificName;
       const displayName = encounter.species.displayName;
+      const presentation = getSpeciesEncounterPresentation({
+        acceptedScientificName: key,
+        displayName,
+        knownSpecies: this.knownSpecies,
+        discoveredNow: result.discoveredNow,
+        collectedNow: result.collectedNow,
+        scoreDelta: result.scoreDelta,
+      });
 
       if (result.discoveredNow) {
-        const isNewDiscovery = !this.discoveredSpecies.has(key);
+        this.knownSpecies.add(key);
         this.discoveredSpecies.add(key);
         this.persistSpeciesDiscovery(key);
-        if (isNewDiscovery) {
-          this.showEncounterEvent('SPECIES DETECTED / ' + displayName, 'species');
-          announce('生物を発見しました。' + displayName + '。');
-        }
+        announce('生物を発見しました。' + displayName + '。');
       }
 
-      if (!result.collectedNow) {
-        continue;
+      if (result.collectedNow) {
+        this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
+        this.persistSpeciesCollection(key);
+        this.speciesScore += result.scoreDelta;
+        this.updateHud();
+        announce(
+          '生物を獲得しました。' + displayName + '、' +
+            String(result.scoreDelta) + '点。',
+        );
+        this.removeSpeciesAt(index);
       }
 
-      this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
-      this.persistSpeciesCollection(key);
-      this.speciesScore += result.scoreDelta;
-      this.updateHud();
-      this.showEncounterEvent(
-        'SPECIES ACQUIRED / +' + String(result.scoreDelta),
-        'species',
-      );
-      announce(
-        '生物を獲得しました。' + displayName + '、' +
-          String(result.scoreDelta) + '点。',
-      );
-      this.removeSpeciesAt(index);
+      if (presentation) {
+        this.showEncounterEvent(presentation.message, 'species');
+      }
     }
   }
 
