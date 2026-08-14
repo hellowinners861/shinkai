@@ -31,7 +31,7 @@ export const gameConfig = {
   parent: "game-container",
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
-  backgroundColor: "#071929",
+  backgroundColor: "#0a2230",
   canvasStyle: "display: block; touch-action: none;",
   disableContextMenu: true,
   input: {
