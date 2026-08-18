@@ -28,7 +28,6 @@ import {
   ROCK_FUEL_DAMAGE,
   ROCK_INVULNERABILITY_SECONDS,
   updateInvulnerability,
-  type Circle,
   type EncounterLane,
   type EncounterSpawn,
 } from '../game/encounterRules';
@@ -43,33 +42,54 @@ import {
 import {
   advanceSpeciesSpawnSchedule,
   canSpawnSpecies,
-  chooseNonOverlappingSpeciesMotionPosition,
   createInitialSpeciesScheduleState,
-  createSpeciesMotionPlan,
-  getSpeciesMotionPatternForSpecies,
-  getSpeciesMotionPosition,
-  getSpeciesScrollSpeed,
-  hasSpeciesMotionExited,
+  getPixelSpeciesAtDepth,
   MAX_ACTIVE_SPECIES,
-  selectPixelSpeciesForDepth,
   SPECIES_COLLISION_RADIUS,
   type CatalogSpeciesRecord,
-  SPECIES_DETECTION_RADIUS,
-  type SpeciesMotionPlan,
   type SpeciesSpawnRequest,
   type SpawnableSpecies,
 } from '../game/speciesRules';
+import {
+  createSpeciesBehaviorPlan,
+  getSpeciesBehaviorPosition,
+  getSpeciesBehaviorVisualState,
+  hasSpeciesBehaviorExited,
+  type SpeciesBehaviorPlan,
+} from '../game/speciesBehaviorRules';
+import {
+  getDepthChapter,
+  getDepthChapterNumber,
+  getChapterTransitions,
+  type DepthChapterNumber,
+} from '../game/chapterRules';
+import { selectPixelSpeciesForDepthWithOptions } from '../game/speciesSelectionRules';
+import {
+  advanceLargeCreatureEvent,
+  advanceLargeCreatureEventIdentification,
+  applyLargeCreatureEventCollision,
+  createInitialLargeCreatureEventState,
+  getLargeCreatureEventCandidate,
+  LARGE_CREATURE_EVENT_CANDIDATE_IDS,
+  LARGE_CREATURE_EVENT_DURATION_SECONDS,
+  LARGE_CREATURE_EVENT_PATH_Y,
+  LARGE_CREATURE_EVENT_REQUIRED_SECONDS,
+  LARGE_CREATURE_EVENT_SCORE,
+  shouldSuspendNormalSpeciesSpawn,
+  type LargeCreatureEventState,
+} from '../game/largeCreatureEventRules';
 import {
   drawSpeciesPixelIcon,
   getSpeciesPixelIconDefinitionForSpecies,
 } from '../game/speciesPixelIcons';
 import {
-  advanceScanTargets,
+  advanceScanTarget,
   getScanProgressPercent,
   getScanRequiredSeconds,
   type ScanTarget,
 } from '../game/scanRules';
 import {
+  awardFixedScanScore,
   applyRockDamage,
   calculateScoreBreakdown,
   completeScan,
@@ -77,6 +97,13 @@ import {
   type ScoreState,
 } from '../game/scoreRules';
 import type { InputVector } from '../input/vector';
+import {
+  advanceSearchlightAngle,
+  SEARCHLIGHT_HALF_ANGLE_RADIANS,
+  SEARCHLIGHT_RANGE_PX,
+  selectSearchlightTargetWithPriority,
+  type SearchlightTarget,
+} from '../game/searchlightRules';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
 import { announce, prefersReducedMotion } from '../platform/preferences';
@@ -98,8 +125,16 @@ interface KeyboardSet {
   right: Phaser.Input.Keyboard.Key;
 }
 
+interface LightKeyboardSet {
+  up: Phaser.Input.Keyboard.Key;
+  down: Phaser.Input.Keyboard.Key;
+  left: Phaser.Input.Keyboard.Key;
+  right: Phaser.Input.Keyboard.Key;
+}
+
 interface MarineSnowParticle {
   sprite: Phaser.GameObjects.Arc;
+  baseSpeedPxPerSecond: number;
   speedPxPerSecond: number;
 }
 
@@ -118,14 +153,25 @@ interface SpeciesObject {
   display: Phaser.GameObjects.Container;
   species: SpawnableSpecies;
   spawnAtSeconds: number;
-  motionPlan: SpeciesMotionPlan;
+  behaviorPlan: SpeciesBehaviorPlan;
   radius: number;
   sequence: number;
   scanId: string;
   progressSeconds: number;
   completed: boolean;
-  detected: boolean;
   globallyNew: boolean;
+  illuminated: boolean;
+  visualAlpha: number;
+}
+
+interface LargeCreatureObject {
+  display: Phaser.GameObjects.Container;
+  species: SpawnableSpecies;
+  radius: number;
+  scanId: string;
+  ageSeconds: number;
+  illuminated: boolean;
+  visualAlpha: number;
 }
 
 interface ActiveScanStatus {
@@ -156,6 +202,19 @@ const MAX_RECOVERY_ITEMS = 2;
 const ENCOUNTER_EVENT_DURATION_SECONDS = 1.1;
 const PLAYER_IMPACT_DISPLAY_SECONDS = 0.45;
 const IMPACT_FEEDBACK_DURATION_MS = 280;
+const LARGE_CONTACT_FEEDBACK_DURATION_MS = 360;
+const SEARCHLIGHT_INNER_HALF_ANGLE_RADIANS =
+  SEARCHLIGHT_HALF_ANGLE_RADIANS * 0.56;
+const GAME_OBJECT_DEPTH = Object.freeze({
+  background: -100,
+  predictionPath: 5,
+  largeCreature: 10,
+  species: 20,
+  searchlightBeam: 30,
+  dimOverlay: 35,
+  player: 40,
+  chapterOverlay: 50,
+});
 const NORMAL_HULL_COLOR = 0x74f2d0;
 const IMPACT_HULL_COLOR = 0xff6b5e;
 const LANE_X_BY_NAME: Record<EncounterLane, number> = {
@@ -202,8 +261,13 @@ export class GameScene extends Phaser.Scene {
   private player: Phaser.GameObjects.Container | undefined;
   private playerHull: Phaser.GameObjects.Rectangle | undefined;
   private joystick: VirtualJoystick | undefined;
+  private searchlightJoystick: VirtualJoystick | undefined;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private wasd: KeyboardSet | undefined;
+  private lightKeys: LightKeyboardSet | undefined;
+  private searchlightAngleRadians = 0;
+  private searchlightTargetAngleRadians = 0;
+  private searchlightBeam: Phaser.GameObjects.Graphics | undefined;
   private paused = false;
   private terminalTransitionStarted = false;
   private lifecyclePaused = false;
@@ -222,6 +286,11 @@ export class GameScene extends Phaser.Scene {
   private hazardWarningGraphics: Phaser.GameObjects.Graphics | undefined;
   private hazardWarningLabel: Phaser.GameObjects.Text | undefined;
   private currentZone: HazardBand = 1;
+  private currentChapter: DepthChapterNumber = 1;
+  private lastChapterDepthM = 0;
+  private backgroundGraphics: Phaser.GameObjects.Graphics | undefined;
+  private chapterTransitionOverlay: Phaser.GameObjects.Rectangle | undefined;
+  private chapterBandRemainingSeconds = 0;
   private speciesScheduleState = createInitialSpeciesScheduleState();
   private speciesEncounters: SpeciesObject[] = [];
   private speciesSequence = 0;
@@ -229,8 +298,14 @@ export class GameScene extends Phaser.Scene {
   private discoveredSpecies = new Set<string>();
   private collectedSpecies: Record<string, number> = {};
   private scoreState: ScoreState = createInitialScoreState();
-  private activeScanLine: Phaser.GameObjects.Graphics | undefined;
   private activeScanStatus: ActiveScanStatus | undefined;
+  private largeCreatureState: LargeCreatureEventState =
+    createInitialLargeCreatureEventState();
+  private largeCreature: LargeCreatureObject | undefined;
+  private largeCreaturePathGraphics: Phaser.GameObjects.Graphics | undefined;
+  private largeCreatureDimOverlay: Phaser.GameObjects.Rectangle | undefined;
+  private largeContactFeedbackTimer: number | undefined;
+  private encounterEventPriority = 0;
   private invulnerabilityRemainingSeconds = 0;
   private playerImpactRemainingSeconds = 0;
   private encounterEventRemainingSeconds = 0;
@@ -256,7 +331,10 @@ export class GameScene extends Phaser.Scene {
     this.terminalTransitionStarted = false;
     this.diveProgression = createInitialDiveProgressionState();
     this.destroyEncounterObjects();
+    this.destroyLargeCreatureObjects();
     this.clearHazardWarning();
+    this.searchlightAngleRadians = 0;
+    this.searchlightTargetAngleRadians = 0;
     this.encounterSequence = 0;
     this.hazardWaves = generateHazardWaves({ seed: 11 });
     const rockTravelSeconds =
@@ -276,12 +354,26 @@ export class GameScene extends Phaser.Scene {
     this.warnedHazardWaveIndices.clear();
     this.hazardWarningWaveIndex = undefined;
     this.currentZone = getDepthBandNumber(0);
+    this.currentChapter = getDepthChapterNumber(0);
+    this.lastChapterDepthM = 0;
+    this.chapterBandRemainingSeconds = 0;
     this.game.registry.set('shinkai.zone', this.currentZone);
+    this.game.registry.set('shinkai.chapter', this.currentChapter);
     this.destroySpeciesObjects();
     this.clearActiveScanPresentation();
     this.speciesScheduleState = createInitialSpeciesScheduleState();
     this.speciesSequence = 0;
     this.knownSpecies = new Set(readDiscoveryProgress().discoveredSpecies);
+    let diveCount = 0;
+    try {
+      diveCount = readRunProgress().diveCount;
+    } catch {
+      diveCount = 0;
+    }
+    this.largeCreatureState = createInitialLargeCreatureEventState({
+      knownSpecies: this.knownSpecies,
+      diveCount,
+    });
     this.discoveredSpecies = new Set<string>();
     this.collectedSpecies = {};
     this.scoreState = createInitialScoreState();
@@ -305,14 +397,19 @@ export class GameScene extends Phaser.Scene {
     this.clearEncounterEvent();
 
     const background = this.add.graphics();
-    background.fillGradientStyle(
-      0x0d3440,
-      0x092632,
-      0x041016,
-      0x041016,
-      1,
-    );
-    background.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    background.setDepth(GAME_OBJECT_DEPTH.background);
+    this.backgroundGraphics = background;
+    this.drawChapterBackground(getDepthChapter(this.currentChapter), true);
+    this.chapterTransitionOverlay = this.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x0d3440)
+      .setOrigin(0)
+      .setDepth(GAME_OBJECT_DEPTH.chapterOverlay)
+      .setAlpha(0);
+    this.largeCreatureDimOverlay = this.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x02070b)
+      .setOrigin(0)
+      .setDepth(GAME_OBJECT_DEPTH.dimOverlay)
+      .setAlpha(0);
     this.createMarineSnow();
     this.add
       .rectangle(0, 108, GAME_WIDTH, 1, 0x27606a)
@@ -380,6 +477,10 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0);
     }
 
+    this.searchlightBeam = this.add.graphics().setDepth(
+      GAME_OBJECT_DEPTH.searchlightBeam,
+    );
+
     const hull = this.add
       .rectangle(0, 0, 68, 36, 0x0a2b36)
       .setStrokeStyle(2, NORMAL_HULL_COLOR, 0.86);
@@ -393,6 +494,7 @@ export class GameScene extends Phaser.Scene {
     const forwardLight = this.add.circle(31, 0, 3, 0xf1b955).setAlpha(0.9);
     const player = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
     player.add([hull, tail, fin, observationWindow, forwardLight]);
+    player.setDepth(GAME_OBJECT_DEPTH.player);
     this.player = player;
     this.playerHull = hull;
 
@@ -404,6 +506,12 @@ export class GameScene extends Phaser.Scene {
         left: Phaser.Input.Keyboard.KeyCodes.A,
         right: Phaser.Input.Keyboard.KeyCodes.D,
       }) as KeyboardSet;
+      this.lightKeys = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.I,
+        down: Phaser.Input.Keyboard.KeyCodes.K,
+        left: Phaser.Input.Keyboard.KeyCodes.J,
+        right: Phaser.Input.Keyboard.KeyCodes.L,
+      }) as LightKeyboardSet;
       this.input.keyboard.on('keydown-P', this.handlePauseKey);
       this.input.keyboard.on('keydown-ESC', this.handlePauseKey);
     }
@@ -411,6 +519,12 @@ export class GameScene extends Phaser.Scene {
     const joystickElement = document.getElementById('virtual-joystick');
     if (joystickElement) {
       this.joystick = new VirtualJoystick(joystickElement);
+    }
+    const searchlightJoystickElement = document.getElementById(
+      'searchlight-joystick',
+    );
+    if (searchlightJoystickElement) {
+      this.searchlightJoystick = new VirtualJoystick(searchlightJoystickElement);
     }
 
     this.events.once('shutdown', this.cleanup);
@@ -426,6 +540,7 @@ export class GameScene extends Phaser.Scene {
 
     const frameSeconds = clampDiveFrameSeconds(delta / 1000);
     this.updateEncounterEvent(frameSeconds);
+    this.updateChapterBand(frameSeconds);
     this.invulnerabilityRemainingSeconds = updateInvulnerability(
       this.invulnerabilityRemainingSeconds,
       frameSeconds,
@@ -437,6 +552,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     const previousStatus = this.diveProgression.status;
+    const previousDepthM = this.diveProgression.depthM;
     const nextProgression = advanceDiveProgression(
       this.diveProgression,
       frameSeconds,
@@ -458,6 +574,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     this.updateZone(nextProgression.depthM);
+    this.advanceLargeCreatureEventState(
+      previousDepthM,
+      nextProgression.depthM,
+      frameSeconds,
+      nextProgression.elapsedSeconds,
+    );
 
     if (!this.reducedMotion) {
       this.updateMarineSnow(frameSeconds);
@@ -476,7 +598,16 @@ export class GameScene extends Phaser.Scene {
     this.speciesScheduleState = speciesScheduleUpdate.state;
     this.updateSpeciesObjects(nextProgression.elapsedSeconds);
     for (const request of speciesScheduleUpdate.spawns) {
-      this.spawnSpecies(request, nextProgression.depthM, nextProgression.elapsedSeconds);
+      if (!shouldSuspendNormalSpeciesSpawn(
+        this.largeCreatureState,
+        this.largeCreature !== undefined,
+      )) {
+        this.spawnSpecies(
+          request,
+          nextProgression.depthM,
+          nextProgression.elapsedSeconds,
+        );
+      }
     }
     this.updateSpeciesObjects(nextProgression.elapsedSeconds);
 
@@ -498,8 +629,410 @@ export class GameScene extends Phaser.Scene {
       GAME_HEIGHT - 198,
     );
 
+    this.updateSearchlight(frameSeconds);
+    this.renderSearchlightBeam();
+    this.updateLargeCreatureObjects(frameSeconds);
     this.updateSpeciesScans(frameSeconds);
     this.resolveEncounterCollisions();
+    this.resolveLargeCreatureCollision();
+  }
+
+  private updateSearchlight(frameSeconds: number): void {
+    const joystickVector = this.searchlightJoystick?.getVector();
+    const input = joystickVector && joystickVector.magnitude > 0
+      ? joystickVector
+      : this.readSearchlightVector();
+
+    if (input.magnitude > 0) {
+      this.searchlightTargetAngleRadians = Math.atan2(input.y, input.x);
+    }
+
+    this.searchlightAngleRadians = this.reducedMotion
+      ? this.searchlightTargetAngleRadians
+      : advanceSearchlightAngle(
+        this.searchlightAngleRadians,
+        this.searchlightTargetAngleRadians,
+        frameSeconds,
+      );
+  }
+
+  private readSearchlightVector(): InputVector {
+    let x = 0;
+    let y = 0;
+    if (this.lightKeys?.left.isDown) {
+      x -= 1;
+    }
+    if (this.lightKeys?.right.isDown) {
+      x += 1;
+    }
+    if (this.lightKeys?.up.isDown) {
+      y -= 1;
+    }
+    if (this.lightKeys?.down.isDown) {
+      y += 1;
+    }
+
+    const magnitude = Math.hypot(x, y);
+    if (magnitude === 0) {
+      return { x: 0, y: 0, magnitude: 0 };
+    }
+
+    const scale = Math.min(1, 1 / magnitude);
+    return {
+      x: x * scale,
+      y: y * scale,
+      magnitude: Math.min(1, magnitude),
+    };
+  }
+
+  private renderSearchlightBeam(): void {
+    if (!this.player || !this.searchlightBeam) {
+      return;
+    }
+
+    const origin = { x: this.player.x, y: this.player.y };
+    const beam = this.searchlightBeam;
+    beam.clear();
+    this.drawSearchlightConeLayer(
+      beam,
+      origin.x,
+      origin.y,
+      SEARCHLIGHT_RANGE_PX,
+      SEARCHLIGHT_HALF_ANGLE_RADIANS,
+      0.05,
+    );
+    this.drawSearchlightConeLayer(
+      beam,
+      origin.x,
+      origin.y,
+      SEARCHLIGHT_RANGE_PX * 0.94,
+      SEARCHLIGHT_INNER_HALF_ANGLE_RADIANS,
+      0.08,
+    );
+    beam.lineStyle(2, 0xf1d58a, 0.3);
+    beam.beginPath();
+    beam.moveTo(origin.x, origin.y);
+    beam.lineTo(
+      origin.x + Math.cos(this.searchlightAngleRadians) * SEARCHLIGHT_RANGE_PX,
+      origin.y + Math.sin(this.searchlightAngleRadians) * SEARCHLIGHT_RANGE_PX,
+    );
+    beam.strokePath();
+  }
+
+  private drawSearchlightConeLayer(
+    graphics: Phaser.GameObjects.Graphics,
+    originX: number,
+    originY: number,
+    range: number,
+    halfAngle: number,
+    alpha: number,
+  ): void {
+    const leftAngle = this.searchlightAngleRadians - halfAngle;
+    const rightAngle = this.searchlightAngleRadians + halfAngle;
+    graphics.fillStyle(0xf1d58a, alpha);
+    graphics.beginPath();
+    graphics.moveTo(originX, originY);
+    graphics.lineTo(
+      originX + Math.cos(leftAngle) * range,
+      originY + Math.sin(leftAngle) * range,
+    );
+    graphics.lineTo(
+      originX + Math.cos(rightAngle) * range,
+      originY + Math.sin(rightAngle) * range,
+    );
+    graphics.closePath();
+    graphics.fillPath();
+  }
+
+  private advanceLargeCreatureEventState(
+    previousDepthM: number,
+    currentDepthM: number,
+    frameSeconds: number,
+    elapsedSeconds: number,
+  ): void {
+    const result = advanceLargeCreatureEvent(
+      this.largeCreatureState,
+      {
+        previousDepthM,
+        currentDepthM,
+        elapsedSeconds: frameSeconds,
+      },
+    );
+    this.largeCreatureState = result.state;
+
+    if (result.warningStarted) {
+      this.showEncounterEvent('MASSIVE CONTACT', 'impact', 4);
+      this.drawLargeCreaturePath();
+      this.startLargeCreatureWarningFeedback();
+      announce('巨大生物の反応を検知しました。');
+    }
+    if (result.eventStarted) {
+      this.startLargeCreatureEncounter(elapsedSeconds);
+      this.showEncounterEvent('MASSIVE CONTACT', 'impact', 4);
+    }
+    if (result.eventLost) {
+      this.showEncounterEvent('CONTACT LOST', 'impact', 4);
+      this.destroyLargeCreatureObjects();
+      announce('大型生物を見失いました。');
+    }
+  }
+
+  private startLargeCreatureEncounter(elapsedSeconds: number): void {
+    if (this.largeCreature) {
+      return;
+    }
+
+    const candidate = getLargeCreatureEventCandidate(
+      this.largeCreatureState.candidateId,
+    );
+    if (!candidate) {
+      return;
+    }
+    const species = getPixelSpeciesAtDepth(
+      SPECIES_CATALOG,
+      Math.max(0, Math.min(candidate.spawnDepthMaxM, 1_350)),
+    ).find((entry) => entry.sourceCatalogId === candidate.sourceCatalogId);
+    if (!species) {
+      return;
+    }
+
+    const display = this.createSpeciesDisplay(species, 1);
+    display.setScale(2.8);
+    display.setDepth(GAME_OBJECT_DEPTH.largeCreature);
+    display.setAlpha(0.34);
+    this.largeCreature = {
+      display,
+      species,
+      radius: SPECIES_COLLISION_RADIUS * 2.8,
+      scanId: 'large-creature-' + candidate.sourceCatalogId,
+      ageSeconds: this.largeCreatureState.eventElapsedSeconds,
+      illuminated: false,
+      visualAlpha: 1,
+    };
+    display.x = -this.largeCreature.radius;
+    display.y = LARGE_CREATURE_EVENT_PATH_Y;
+    this.drawLargeCreaturePath();
+    void elapsedSeconds;
+  }
+
+  private updateLargeCreatureObjects(frameSeconds: number): void {
+    const creature = this.largeCreature;
+    if (!creature) {
+      return;
+    }
+
+    if (this.largeCreatureState.status === 'completed') {
+      creature.ageSeconds = Math.min(
+        LARGE_CREATURE_EVENT_DURATION_SECONDS,
+        creature.ageSeconds + frameSeconds,
+      );
+    } else {
+      creature.ageSeconds = this.largeCreatureState.eventElapsedSeconds;
+    }
+    const progress = Phaser.Math.Clamp(
+      creature.ageSeconds / LARGE_CREATURE_EVENT_DURATION_SECONDS,
+      0,
+      1,
+    );
+    creature.display.x = -creature.radius +
+      (GAME_WIDTH + creature.radius * 2) * progress;
+    creature.display.y = LARGE_CREATURE_EVENT_PATH_Y;
+    creature.display.setAlpha(creature.illuminated ? 0.96 : 0.34);
+
+    if (this.largeCreatureState.status === 'completed' &&
+      creature.ageSeconds >= LARGE_CREATURE_EVENT_DURATION_SECONDS) {
+      this.destroyLargeCreatureObjects();
+    }
+  }
+
+  private resolveLargeCreatureCollision(): void {
+    if (!this.player || !this.largeCreature ||
+      (this.largeCreatureState.status !== 'active' &&
+        this.largeCreatureState.status !== 'completed')) {
+      return;
+    }
+
+    if (!circlesOverlap(
+      {
+        x: this.player.x,
+        y: this.player.y,
+        radius: PLAYER_COLLISION_RADIUS,
+      },
+      {
+        x: this.largeCreature.display.x,
+        y: this.largeCreature.display.y,
+        radius: this.largeCreature.radius,
+      },
+    )) {
+      return;
+    }
+
+    const result = applyLargeCreatureEventCollision(this.largeCreatureState);
+    this.largeCreatureState = result.state;
+    if (!result.collidedNow) {
+      return;
+    }
+
+    this.scoreState = applyRockDamage(this.scoreState);
+    const previousStatus = this.diveProgression.status;
+    this.diveProgression = adjustDiveFuel(
+      this.diveProgression,
+      -result.damageApplied,
+    );
+    this.invulnerabilityRemainingSeconds = ROCK_INVULNERABILITY_SECONDS;
+    this.playerImpactRemainingSeconds = PLAYER_IMPACT_DISPLAY_SECONDS;
+    this.playerHull?.setStrokeStyle(2, IMPACT_HULL_COLOR, 1);
+    this.triggerImpactFeedback();
+    this.showEncounterEvent(
+      'MASSIVE IMPACT / FUEL -' + String(result.damageApplied),
+      'impact',
+      4,
+    );
+    this.updateHud();
+    announce('大型生物に接触しました。燃料が20減少しました。');
+    if (previousStatus !== this.diveProgression.status) {
+      this.announceTerminalStatus(this.diveProgression.status);
+      this.transitionToResult();
+    }
+  }
+
+  private drawLargeCreaturePath(): void {
+    if (!this.largeCreaturePathGraphics) {
+      this.largeCreaturePathGraphics = this.add.graphics().setDepth(
+        GAME_OBJECT_DEPTH.predictionPath,
+      );
+    }
+    this.largeCreaturePathGraphics.clear();
+    this.largeCreaturePathGraphics.lineStyle(1, 0xf1d58a, 0.24);
+    this.largeCreaturePathGraphics.beginPath();
+    this.largeCreaturePathGraphics.moveTo(0, LARGE_CREATURE_EVENT_PATH_Y);
+    this.largeCreaturePathGraphics.lineTo(
+      GAME_WIDTH,
+      LARGE_CREATURE_EVENT_PATH_Y,
+    );
+    this.largeCreaturePathGraphics.strokePath();
+  }
+
+  private startLargeCreatureWarningFeedback(): void {
+    if (this.largeCreatureDimOverlay) {
+      this.tweens.killTweensOf(this.largeCreatureDimOverlay);
+      this.largeCreatureDimOverlay.setAlpha(this.reducedMotion ? 0 : 0.14);
+      if (!this.reducedMotion) {
+        this.tweens.add({
+          targets: this.largeCreatureDimOverlay,
+          alpha: 0,
+          duration: 700,
+          ease: 'Sine.easeOut',
+        });
+      }
+    }
+    if (this.reducedMotion) {
+      return;
+    }
+
+    this.clearLargeContactFeedback();
+    const targets = document.querySelectorAll<HTMLElement>(
+      '#game-container > canvas, #game-ui .game-hud, #game-ui .dive-status',
+    );
+    targets.forEach((target) => {
+      void target.offsetWidth;
+      target.classList.add('large-contact-shake');
+    });
+    this.largeContactFeedbackTimer = window.setTimeout(() => {
+      this.clearLargeContactFeedback();
+    }, LARGE_CONTACT_FEEDBACK_DURATION_MS);
+  }
+
+  private clearLargeContactFeedback(): void {
+    if (this.largeContactFeedbackTimer !== undefined) {
+      window.clearTimeout(this.largeContactFeedbackTimer);
+      this.largeContactFeedbackTimer = undefined;
+    }
+    document.querySelectorAll<HTMLElement>(
+      '#game-container > canvas, #game-ui .game-hud, #game-ui .dive-status',
+    ).forEach((target) => target.classList.remove('large-contact-shake'));
+  }
+
+  private destroyLargeCreatureObjects(): void {
+    this.largeCreature?.display.destroy();
+    this.largeCreature = undefined;
+    this.largeCreaturePathGraphics?.clear();
+    this.largeCreaturePathGraphics?.destroy();
+    this.largeCreaturePathGraphics = undefined;
+  }
+
+  private drawChapterBackground(
+    chapter: ReturnType<typeof getDepthChapter>,
+    initial = false,
+  ): void {
+    if (!this.backgroundGraphics) {
+      return;
+    }
+
+    const bottomColor = chapter.number === 1
+      ? 0x041016
+      : chapter.number === 2
+        ? 0x031019
+        : chapter.number === 3
+          ? 0x020b13
+          : 0x010509;
+    this.backgroundGraphics.clear();
+    this.backgroundGraphics.fillGradientStyle(
+      chapter.backgroundColor,
+      chapter.backgroundColor,
+      bottomColor,
+      bottomColor,
+      1,
+    );
+    this.backgroundGraphics.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    this.updateMarineSnowPresentation(chapter);
+
+    if (!initial && this.chapterTransitionOverlay) {
+      this.tweens.killTweensOf(this.chapterTransitionOverlay);
+      this.chapterTransitionOverlay.setFillStyle(chapter.backgroundColor);
+      this.chapterTransitionOverlay.setAlpha(this.reducedMotion ? 0 : 0.28);
+      if (!this.reducedMotion) {
+        this.tweens.add({
+          targets: this.chapterTransitionOverlay,
+          alpha: 0,
+          duration: 750,
+          ease: 'Sine.easeOut',
+        });
+      }
+    }
+  }
+
+  private updateChapterBand(seconds: number): void {
+    if (this.chapterBandRemainingSeconds <= 0) {
+      return;
+    }
+    this.chapterBandRemainingSeconds = Math.max(
+      0,
+      this.chapterBandRemainingSeconds - seconds,
+    );
+    if (this.chapterBandRemainingSeconds === 0) {
+      document.getElementById('chapter-band')?.setAttribute('hidden', '');
+    }
+  }
+
+  private showChapterBand(
+    chapter: ReturnType<typeof getDepthChapter>,
+    depthM: number,
+  ): void {
+    const band = document.getElementById('chapter-band');
+    const number = document.getElementById('chapter-band-number');
+    const name = document.getElementById('chapter-band-name');
+    const depth = document.getElementById('chapter-band-depth');
+    number?.replaceChildren('CHAPTER ' + chapter.roman);
+    name?.replaceChildren(chapter.displayNameJa);
+    depth?.replaceChildren(
+      String(chapter.minDepthM).padStart(4, '0') + '–' +
+        String(chapter.maxDepthM).padStart(4, '0') + 'm',
+    );
+    band?.setAttribute('data-chapter', String(chapter.number));
+    band?.removeAttribute('hidden');
+    this.chapterBandRemainingSeconds = 1.4;
+    void depthM;
   }
 
   public togglePaused(): void {
@@ -518,6 +1051,7 @@ export class GameScene extends Phaser.Scene {
     pauseGlyph?.replaceChildren(this.paused ? '▶' : 'II');
     pauseOverlay?.toggleAttribute('hidden', !this.paused);
     if (this.paused) {
+      this.resetInput();
       container?.setAttribute('data-paused', 'true');
       announce('潜航を停止しました。');
       this.scene.pause();
@@ -603,10 +1137,14 @@ export class GameScene extends Phaser.Scene {
     depthM: number,
     elapsedSeconds: number,
   ): void {
-    const species = selectPixelSpeciesForDepth(
+    const species = selectPixelSpeciesForDepthWithOptions(
       SPECIES_CATALOG,
       depthM,
       request.ordinal,
+      {
+        chapter: this.currentChapter,
+        excludeSourceCatalogIds: LARGE_CREATURE_EVENT_CANDIDATE_IDS,
+      },
     );
     if (
       !species ||
@@ -615,44 +1153,33 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const pattern = getSpeciesMotionPatternForSpecies(species, request.ordinal);
-    const position = chooseNonOverlappingSpeciesMotionPosition(
+    const behaviorPlan = createSpeciesBehaviorPlan(
+      species,
       request.ordinal,
-      pattern,
       SPECIES_COLLISION_RADIUS,
-      this.getOccupiedSpawnCircles(),
     );
-    if (!position) {
-      return;
-    }
-
-    const laneCoordinate = pattern === 'left_to_right' || pattern === 'right_to_left'
-      ? position.y
-      : position.x;
-    const motionPlan = createSpeciesMotionPlan(
-      pattern,
-      laneCoordinate,
-      getSpeciesScrollSpeed(species.behavior),
-      position.radius,
+    const display = this.createSpeciesDisplay(
+      species,
+      behaviorPlan.axis === 'horizontal' ? behaviorPlan.direction : 1,
     );
-    const display = this.createSpeciesDisplay(species, motionPlan.direction.x);
     const encounter: SpeciesObject = {
       display,
       species,
       spawnAtSeconds: request.atSeconds,
-      motionPlan,
-      radius: position.radius,
+      behaviorPlan,
+      radius: behaviorPlan.radius,
       sequence: this.speciesSequence,
       scanId: `species-${String(this.speciesSequence)}`,
       progressSeconds: 0,
       completed: false,
-      detected: false,
       globallyNew: false,
+      illuminated: false,
+      visualAlpha: 1,
     };
     this.speciesSequence += 1;
     this.speciesEncounters.push(encounter);
-    display.x = motionPlan.start.x;
-    display.y = motionPlan.start.y;
+    display.x = behaviorPlan.start.x;
+    display.y = behaviorPlan.start.y;
     this.updateSpeciesObjects(elapsedSeconds);
   }
 
@@ -668,28 +1195,15 @@ export class GameScene extends Phaser.Scene {
     if (definition) {
       drawSpeciesPixelIcon(icon, definition);
     }
-    icon.setAlpha(0.96);
+    icon.setAlpha(1);
     icon.setScale(horizontalDirection < 0 ? -1 : 1, 1);
 
     const display = this.add.container(0, 0);
     display.add(icon);
+    display.setDepth(GAME_OBJECT_DEPTH.species);
+    display.setAlpha(0.58);
     display.setName(species.acceptedScientificName);
     return display;
-  }
-
-  private getOccupiedSpawnCircles(): Circle[] {
-    return [
-      ...this.encounters.map((encounter) => ({
-        x: encounter.display.x,
-        y: encounter.display.y,
-        radius: encounter.radius,
-      })),
-      ...this.speciesEncounters.map((encounter) => ({
-        x: encounter.display.x,
-        y: encounter.display.y,
-        radius: encounter.radius,
-      })),
-    ];
   }
 
   private updateSpeciesObjects(elapsedSeconds: number): void {
@@ -703,14 +1217,23 @@ export class GameScene extends Phaser.Scene {
         0,
         elapsedSeconds - encounter.spawnAtSeconds,
       );
-      const position = getSpeciesMotionPosition(
-        encounter.motionPlan,
+      const position = getSpeciesBehaviorPosition(
+        encounter.behaviorPlan,
         ageSeconds,
       );
       encounter.display.x = position.x;
       encounter.display.y = position.y;
+      const visualState = getSpeciesBehaviorVisualState(
+        encounter.behaviorPlan,
+        ageSeconds,
+      );
+      encounter.visualAlpha = visualState.alpha;
+      encounter.display.setScale(visualState.scale);
+      encounter.display.setAlpha(encounter.illuminated
+        ? Math.min(0.96, visualState.alpha)
+        : Phaser.Math.Clamp(visualState.alpha * 0.64, 0.48, 0.68));
 
-      if (hasSpeciesMotionExited(encounter.motionPlan, position)) {
+      if (hasSpeciesBehaviorExited(encounter.behaviorPlan, position)) {
         this.removeSpeciesAt(index);
       }
     }
@@ -722,34 +1245,77 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const playerCircle: Circle = {
-      x: this.player.x,
-      y: this.player.y,
-      radius: PLAYER_COLLISION_RADIUS,
-    };
-    const detectionCircle: Circle = {
-      ...playerCircle,
-      radius: SPECIES_DETECTION_RADIUS,
-    };
-    const newDiscoveryScanIds = new Set<string>();
+    const origin = { x: this.player.x, y: this.player.y };
+    const searchlightTargets: SearchlightTarget[] = [];
+    for (const encounter of this.speciesEncounters) {
+      encounter.illuminated = false;
+      if (encounter.completed) {
+        continue;
+      }
+      searchlightTargets.push({
+        id: encounter.scanId,
+        spawnSequence: encounter.sequence,
+        x: encounter.display.x,
+        y: encounter.display.y,
+      });
+    }
+
+    if (this.largeCreature &&
+      this.largeCreatureState.status === 'active') {
+      searchlightTargets.push({
+        id: this.largeCreature.scanId,
+        spawnSequence: Number.MAX_SAFE_INTEGER,
+        x: this.largeCreature.display.x,
+        y: this.largeCreature.display.y,
+      });
+    }
+
+    const selectedTarget = selectSearchlightTargetWithPriority(
+      origin,
+      this.searchlightAngleRadians,
+      searchlightTargets,
+      this.largeCreature?.scanId,
+      SEARCHLIGHT_RANGE_PX,
+      SEARCHLIGHT_HALF_ANGLE_RADIANS,
+    );
+    const selectedTargetId = selectedTarget?.id;
+    const completedNormalEncounters: SpeciesObject[] = [];
+    const updatedTargets = new Map<string, ScanTarget>();
 
     for (const encounter of this.speciesEncounters) {
-      if (encounter.detected || encounter.completed) {
+      if (encounter.completed) {
         continue;
       }
 
-      if (!circlesOverlap(
-        detectionCircle,
-        {
-          x: encounter.display.x,
-          y: encounter.display.y,
-          radius: encounter.radius,
-        },
-      )) {
-        continue;
+      const isSelected = encounter.scanId === selectedTargetId;
+      encounter.illuminated = isSelected;
+      const target: ScanTarget = {
+        id: encounter.scanId,
+        spawnSequence: encounter.sequence,
+        centerDistance: Phaser.Math.Distance.Between(
+          origin.x,
+          origin.y,
+          encounter.display.x,
+          encounter.display.y,
+        ),
+        rarity: encounter.species.rarity,
+        progressSeconds: encounter.progressSeconds,
+        completed: encounter.completed,
+      };
+      const nextTarget = advanceScanTarget(
+        target,
+        isSelected,
+        frameSeconds,
+      );
+      encounter.progressSeconds = nextTarget.progressSeconds;
+      encounter.completed = nextTarget.completed;
+      updatedTargets.set(encounter.scanId, nextTarget);
+      if (nextTarget.completed) {
+        completedNormalEncounters.push(encounter);
       }
+    }
 
-      encounter.detected = true;
+    for (const encounter of completedNormalEncounters) {
       const key = encounter.species.acceptedScientificName;
       const displayName = encounter.species.displayName;
       const globallyNew = !this.knownSpecies.has(key);
@@ -759,68 +1325,24 @@ export class GameScene extends Phaser.Scene {
         this.knownSpecies.add(key);
         this.discoveredSpecies.add(key);
         this.persistSpeciesDiscovery(key);
-        newDiscoveryScanIds.add(encounter.scanId);
-        this.showEncounterEvent(`NEW! / ${displayName}`, 'species');
-        announce('生物を発見しました。' + displayName + '。');
-      }
-    }
-
-    const targets: ScanTarget[] = [];
-    for (const encounter of this.speciesEncounters) {
-      if (!encounter.detected || encounter.completed) {
-        continue;
       }
 
-      targets.push({
-        id: encounter.scanId,
-        spawnSequence: encounter.sequence,
-        centerDistance: Phaser.Math.Distance.Between(
-          playerCircle.x,
-          playerCircle.y,
-          encounter.display.x,
-          encounter.display.y,
-        ),
-        rarity: encounter.species.rarity,
-        progressSeconds: encounter.progressSeconds,
-        completed: encounter.completed,
-      });
-    }
-
-    const progressUpdate = advanceScanTargets(targets, frameSeconds);
-    const completedTargetIds = new Set(progressUpdate.completedTargetIds);
-    for (const target of progressUpdate.targets) {
-      const encounter = this.speciesEncounters.find(
-        (candidate) => candidate.scanId === target.id,
-      );
-      if (!encounter) {
-        continue;
-      }
-
-      encounter.progressSeconds = target.progressSeconds;
-      encounter.completed = target.completed;
-    }
-
-    for (let index = this.speciesEncounters.length - 1; index >= 0; index -= 1) {
-      const encounter = this.speciesEncounters[index];
-      if (!encounter || !completedTargetIds.has(encounter.scanId)) {
-        continue;
-      }
-
-      const key = encounter.species.acceptedScientificName;
-      const displayName = encounter.species.displayName;
       const completion = completeScan(
         this.scoreState,
         encounter.species.score,
-        encounter.globallyNew,
+        globallyNew,
       );
       this.scoreState = completion.state;
       this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
       this.persistSpeciesCollection(key);
 
-      if (!newDiscoveryScanIds.has(encounter.scanId)) {
+      if (globallyNew) {
+        this.showEncounterEvent('NEW! / ' + displayName, 'species');
+        announce('生物を発見しました。' + displayName + '。');
+      } else {
         const scoreDelta = completion.scanScore + completion.firstDiscoveryBonus;
         this.showEncounterEvent(
-          `SCAN COMPLETE / +${String(scoreDelta)}`,
+          'SCAN COMPLETE / +' + String(scoreDelta),
           'species',
         );
         announce(
@@ -830,23 +1352,75 @@ export class GameScene extends Phaser.Scene {
       }
 
       this.updateHud();
-      this.removeSpeciesAt(index);
+      const index = this.speciesEncounters.indexOf(encounter);
+      if (index >= 0) {
+        this.removeSpeciesAt(index);
+      }
     }
 
-    const activeTarget = progressUpdate.activeTargetId === undefined
-      ? undefined
-      : progressUpdate.targets.find(
-        (target) => target.id === progressUpdate.activeTargetId,
+    let largeCreatureCompleted = false;
+    if (this.largeCreature &&
+      this.largeCreatureState.status === 'active') {
+      const illuminated = selectedTargetId === this.largeCreature.scanId;
+      this.largeCreature.illuminated = illuminated;
+      const identification = advanceLargeCreatureEventIdentification(
+        this.largeCreatureState,
+        illuminated,
+        frameSeconds,
       );
-    const activeEncounter = activeTarget === undefined
+      this.largeCreatureState = identification.state;
+      if (identification.completedNow) {
+        largeCreatureCompleted = true;
+        const key = this.largeCreature.species.acceptedScientificName;
+        const displayName = this.largeCreature.species.displayName;
+        const globallyNew = !this.knownSpecies.has(key);
+        if (globallyNew) {
+          this.knownSpecies.add(key);
+          this.discoveredSpecies.add(key);
+          this.persistSpeciesDiscovery(key);
+          this.showEncounterEvent('NEW! / ' + displayName, 'impact', 4);
+          announce('大型生物を識別しました。' + displayName + '。');
+        } else {
+          this.showEncounterEvent(
+            'SCAN COMPLETE / +' + String(LARGE_CREATURE_EVENT_SCORE),
+            'impact',
+            4,
+          );
+          announce('大型生物の識別を完了しました。');
+        }
+        const fixedAward = awardFixedScanScore(
+          this.scoreState,
+          identification.scoreAwarded,
+        );
+        this.scoreState = fixedAward.state;
+        this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
+        this.persistSpeciesCollection(key);
+        this.updateHud();
+      }
+    }
+
+    if (largeCreatureCompleted ||
+      this.largeCreatureState.status !== 'active' ||
+      selectedTargetId === this.largeCreature?.scanId) {
+      if (this.largeCreatureState.status === 'active' &&
+        this.largeCreature &&
+        selectedTargetId === this.largeCreature.scanId) {
+        this.updateLargeCreatureScanPresentation();
+      } else {
+        this.clearActiveScanPresentation();
+      }
+      return;
+    }
+
+    const activeEncounter = selectedTargetId === undefined
       ? undefined
-      : this.speciesEncounters.find(
-        (encounter) => encounter.scanId === activeTarget.id &&
-          !encounter.completed,
-      );
+      : this.speciesEncounters.find((encounter) =>
+        encounter.scanId === selectedTargetId && !encounter.completed);
+    const activeTarget = activeEncounter === undefined
+      ? undefined
+      : updatedTargets.get(activeEncounter.scanId);
     this.updateActiveScanPresentation(activeEncounter, activeTarget);
   }
-
   private updateActiveScanPresentation(
     encounter: SpeciesObject | undefined,
     target: ScanTarget | undefined,
@@ -864,34 +1438,46 @@ export class GameScene extends Phaser.Scene {
 
     this.activeScanStatus = {
       sourceCatalogId: encounter.species.sourceCatalogId,
-      displayName: encounter.species.displayName,
+      displayName: this.knownSpecies.has(encounter.species.acceptedScientificName)
+        ? encounter.species.displayName
+        : 'UNKNOWN / ' + encounter.species.category,
       progressSeconds: target.progressSeconds ?? 0,
       requiredSeconds,
       progressPercent: getScanProgressPercent(target),
     };
     this.game.registry?.set('shinkai.activeScanStatus', this.activeScanStatus);
     this.updateScanRail(this.activeScanStatus);
-
-    if (!this.activeScanLine) {
-      this.activeScanLine = this.add.graphics();
-    }
-    this.activeScanLine.clear();
-    this.activeScanLine.lineStyle(1, 0x6bd9e8, 0.45);
-    this.activeScanLine.beginPath();
-    this.activeScanLine.moveTo(this.player.x, this.player.y);
-    this.activeScanLine.lineTo(encounter.display.x, encounter.display.y);
-    this.activeScanLine.strokePath();
   }
 
   private clearActiveScanPresentation(): void {
-    if (this.activeScanLine) {
-      this.activeScanLine.clear();
-      this.activeScanLine.destroy();
-      this.activeScanLine = undefined;
-    }
     this.activeScanStatus = undefined;
     this.game.registry?.set('shinkai.activeScanStatus', undefined);
     this.updateScanRail(undefined);
+  }
+
+  private updateLargeCreatureScanPresentation(): void {
+    if (!this.largeCreature ||
+      this.largeCreatureState.status !== 'active') {
+      this.clearActiveScanPresentation();
+      return;
+    }
+
+    const requiredSeconds = LARGE_CREATURE_EVENT_REQUIRED_SECONDS;
+    this.activeScanStatus = {
+      sourceCatalogId: this.largeCreature.species.sourceCatalogId,
+      displayName: this.knownSpecies.has(
+        this.largeCreature.species.acceptedScientificName,
+      )
+        ? this.largeCreature.species.displayName
+        : 'UNKNOWN / ' + this.largeCreature.species.category,
+      progressSeconds: this.largeCreatureState.identificationSeconds,
+      requiredSeconds,
+      progressPercent: (
+        this.largeCreatureState.identificationSeconds / requiredSeconds
+      ) * 100,
+    };
+    this.game.registry?.set('shinkai.activeScanStatus', this.activeScanStatus);
+    this.updateScanRail(this.activeScanStatus);
   }
 
   /** Keeps the HTML scan rail in sync with the Phaser-only scan state. */
@@ -906,7 +1492,7 @@ export class GameScene extends Phaser.Scene {
       if (fill instanceof HTMLElement) {
         fill.style.width = '0%';
       }
-      this.setScanRailAria(rail, fill, '0', 'SCAN / 0%');
+      this.setScanRailAria(rail, fill, '0', 'IDENTIFY / 0%');
       return;
     }
 
@@ -915,7 +1501,8 @@ export class GameScene extends Phaser.Scene {
       : 0;
     const roundedPercent = Math.round(percent * 10) / 10;
     const percentText = String(roundedPercent);
-    const ariaText = `SCAN / ${status.displayName} / ${percentText}%`;
+    const ariaText = 'IDENTIFY / ' + status.displayName + ' / ' +
+      percentText + '%';
 
     rail?.removeAttribute('hidden');
     targetName?.replaceChildren(status.displayName);
@@ -1089,20 +1676,42 @@ export class GameScene extends Phaser.Scene {
 
   private updateZone(depthM: number, force = false): void {
     const zone = getDepthBandNumber(depthM);
-    if (!force && zone === this.currentZone) {
+    const chapter = getDepthChapter(depthM);
+    const depth = Number.isFinite(depthM)
+      ? Math.max(0, Math.floor(depthM))
+      : 0;
+    const transitions = getChapterTransitions(
+      this.lastChapterDepthM,
+      depth,
+    );
+    const chapterChanged = force ||
+      chapter.number !== this.currentChapter ||
+      transitions.length > 0;
+    if (!force && zone === this.currentZone && !chapterChanged) {
+      this.lastChapterDepthM = depth;
       return;
     }
 
     this.currentZone = zone;
+    this.currentChapter = chapter.number;
+    this.lastChapterDepthM = depth;
     this.game.registry?.set('shinkai.zone', zone);
+    this.game.registry?.set('shinkai.chapter', chapter.number);
     const zoneReadout = document.getElementById('zone-readout');
-    zoneReadout?.replaceChildren(String(zone));
-    zoneReadout?.setAttribute('data-zone', String(zone));
-    const depth = Number.isFinite(depthM)
-      ? Math.max(0, Math.floor(depthM))
-      : 0;
-    const message = `ZONE ${String(zone)} / DEPTH ${String(depth).padStart(4, '0')}m`;
-    this.showEncounterEvent(message, 'zone');
+    zoneReadout?.replaceChildren(String(chapter.number));
+    zoneReadout?.setAttribute('data-zone', String(chapter.number));
+    document.getElementById('game-ui')?.style.setProperty(
+      '--chapter-accent',
+      chapter.accentHex,
+    );
+    document.getElementById('dive-status-chapter')?.replaceChildren(
+      'CH ' + chapter.roman + ' / ' + chapter.displayNameJa,
+    );
+    this.drawChapterBackground(chapter, force);
+    this.showChapterBand(chapter, depth);
+    const message = 'CHAPTER ' + chapter.roman + ' / ' +
+      chapter.displayNameJa + ' / DEPTH ' +
+      String(depth).padStart(4, '0') + 'm';
     announce(message);
   }
 
@@ -1255,8 +1864,16 @@ export class GameScene extends Phaser.Scene {
   private showEncounterEvent(
     message: string,
     kind: 'impact' | 'recovery' | 'species' | 'zone',
+    priority = kind === 'zone' ? 3 : kind === 'impact' ? 2 : 1,
   ): void {
+    if (
+      this.encounterEventRemainingSeconds > 0 &&
+      priority < this.encounterEventPriority
+    ) {
+      return;
+    }
     this.encounterEventRemainingSeconds = ENCOUNTER_EVENT_DURATION_SECONDS;
+    this.encounterEventPriority = priority;
     const eventElement = document.getElementById('encounter-event');
     eventElement?.setAttribute('data-kind', kind);
     eventElement?.replaceChildren(message);
@@ -1265,6 +1882,7 @@ export class GameScene extends Phaser.Scene {
 
   private clearEncounterEvent(): void {
     this.encounterEventRemainingSeconds = 0;
+    this.encounterEventPriority = 0;
     const eventElement = document.getElementById('encounter-event');
     eventElement?.setAttribute('hidden', '');
     eventElement?.removeAttribute('data-kind');
@@ -1420,9 +2038,12 @@ export class GameScene extends Phaser.Scene {
       this.hudSnapshot.statusPrimary !== snapshot.statusPrimary ||
       this.hudSnapshot.statusSecondary !== snapshot.statusSecondary
     ) {
-      const statusElement = document.getElementById('dive-status');
-      statusElement?.children.item(0)?.replaceChildren(snapshot.statusPrimary);
-      statusElement?.children.item(1)?.replaceChildren(snapshot.statusSecondary);
+      document.getElementById('dive-status-primary')?.replaceChildren(
+        snapshot.statusPrimary,
+      );
+      document.getElementById('dive-status-secondary')?.replaceChildren(
+        snapshot.statusSecondary,
+      );
     }
 
     this.hudSnapshot = snapshot;
@@ -1487,6 +2108,15 @@ export class GameScene extends Phaser.Scene {
     this.destroyEncounterObjects();
     this.clearHazardWarning();
     this.destroySpeciesObjects();
+    this.destroyLargeCreatureObjects();
+    this.clearLargeContactFeedback();
+    this.largeCreatureDimOverlay?.setAlpha(0);
+    this.searchlightBeam?.clear();
+    if (this.chapterTransitionOverlay) {
+      this.tweens.killTweensOf(this.chapterTransitionOverlay);
+    }
+    this.chapterBandRemainingSeconds = 0;
+    document.getElementById('chapter-band')?.setAttribute('hidden', '');
     this.clearActiveScanPresentation();
     this.clearEncounterEvent();
 
@@ -1546,8 +2176,33 @@ export class GameScene extends Phaser.Scene {
           particle.radius,
           particle.color,
         ).setAlpha(particle.alpha),
+        baseSpeedPxPerSecond: particle.speed,
         speedPxPerSecond: particle.speed,
       });
+    }
+    this.updateMarineSnowPresentation(getDepthChapter(this.currentChapter));
+  }
+
+  private updateMarineSnowPresentation(
+    chapter: ReturnType<typeof getDepthChapter>,
+  ): void {
+    const profile = chapter.particleProfile;
+    const visibleCount = Math.round(
+      MARINE_SNOW_LAYOUT.length * Phaser.Math.Clamp(profile.density, 0, 1),
+    );
+    for (const [index, particle] of this.marineSnow.entries()) {
+      const base = MARINE_SNOW_LAYOUT[index];
+      if (!base) {
+        continue;
+      }
+      const alphaScale = base.alpha / 0.18;
+      particle.sprite.setFillStyle(
+        profile.color,
+        Phaser.Math.Clamp(profile.alpha * alphaScale, 0.04, 0.22),
+      );
+      particle.sprite.setVisible(index < visibleCount);
+      particle.speedPxPerSecond = profile.speedPxPerSecond *
+        (base.speed / 34);
     }
   }
 
@@ -1578,6 +2233,7 @@ export class GameScene extends Phaser.Scene {
 
   private resetInput(): void {
     this.joystick?.reset();
+    this.searchlightJoystick?.reset();
     this.input.keyboard?.resetKeys();
   }
 
@@ -1586,6 +2242,8 @@ export class GameScene extends Phaser.Scene {
     this.destroyEncounterObjects();
     this.clearHazardWarning();
     this.destroySpeciesObjects();
+    this.destroyLargeCreatureObjects();
+    this.clearLargeContactFeedback();
     this.clearActiveScanPresentation();
     this.clearEncounterEvent();
     this.clearImpactFeedback();
@@ -1594,6 +2252,23 @@ export class GameScene extends Phaser.Scene {
     this.resetInput();
     this.joystick?.destroy();
     this.joystick = undefined;
+    this.searchlightJoystick?.destroy();
+    this.searchlightJoystick = undefined;
+    this.searchlightBeam?.clear();
+    this.searchlightBeam?.destroy();
+    this.searchlightBeam = undefined;
+    if (this.chapterTransitionOverlay) {
+      this.tweens.killTweensOf(this.chapterTransitionOverlay);
+    }
+    this.chapterTransitionOverlay?.destroy();
+    this.chapterTransitionOverlay = undefined;
+    this.largeCreatureDimOverlay?.destroy();
+    this.largeCreatureDimOverlay = undefined;
+    this.backgroundGraphics = undefined;
+    this.chapterBandRemainingSeconds = 0;
+    document.getElementById('chapter-band')?.setAttribute('hidden', '');
+    this.searchlightAngleRadians = 0;
+    this.searchlightTargetAngleRadians = 0;
     this.input.keyboard?.off('keydown-P', this.handlePauseKey);
     this.input.keyboard?.off('keydown-ESC', this.handlePauseKey);
     document.getElementById('game-ui')?.setAttribute('hidden', '');
