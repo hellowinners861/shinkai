@@ -12,10 +12,12 @@ const DEFAULT_DEAD_ZONE = 0.12;
 /**
  * A reusable, floating pointer joystick for the mobile shell.
  *
- * The visual element is deliberately HTML/CSS so its 120px touch target stays
+ * The visual element is deliberately HTML/CSS so its 112px minimum touch target stays
  * a CSS size even when the Phaser canvas is FIT-scaled to a 320px viewport.
  * Pointer coordinates are measured against the element's current client rect,
  * which keeps the input aligned after browser resize and orientation changes.
+ * Each instance owns one pointer id, so two instances can receive the primary
+ * and secondary touch at the same time (MOVE + LIGHT).
  */
 export class VirtualJoystick {
   private readonly element: HTMLElement;
@@ -75,7 +77,9 @@ export class VirtualJoystick {
   }
 
   private readonly handlePointerDown = (event: PointerEvent): void => {
-    if (this.pointerId !== null || !event.isPrimary) {
+    // Do not gate on PointerEvent.isPrimary: on touch screens the second hand
+    // is intentionally non-primary, and MOVE/LIGHT use separate elements.
+    if (this.pointerId !== null) {
       return;
     }
 

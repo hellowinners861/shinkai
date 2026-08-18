@@ -10,6 +10,7 @@ import {
   calculateScoreBreakdown,
   completeScan,
   createInitialScoreState,
+  awardFixedScanScore,
   getScoreMultiplier,
   resetCleanStreak,
 } from "../src/game/scoreRules";
@@ -68,6 +69,23 @@ describe("score rules", () => {
     });
     expect(state.cleanStreak).toBe(1);
     expect(resetCleanStreak(4)).toBe(0);
+  });
+
+  it("awards a fixed set-piece score without streak or first-discovery mixing", () => {
+    const state = {
+      cleanStreak: 4,
+      scanScoreTotal: 125,
+      firstDiscoveryBonusTotal: 100,
+    };
+    const award = awardFixedScanScore(state, 300);
+    expect(award).toEqual({
+      score: 300,
+      state: {
+        cleanStreak: 4,
+        scanScoreTotal: 425,
+        firstDiscoveryBonusTotal: 100,
+      },
+    });
   });
 
   it("normalizes depth and fuel bonuses to non-negative integers with caps", () => {

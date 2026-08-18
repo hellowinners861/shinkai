@@ -167,6 +167,23 @@ describe("VirtualJoystick", () => {
     },
   );
 
+  it("accepts a non-primary pointer for two-finger controls", () => {
+    const element = new FakeElement();
+    const joystick = new VirtualJoystick(element as unknown as HTMLElement, {
+      deadZone: 0,
+    });
+
+    element.dispatch("pointerdown", pointer({
+      clientX: 200,
+      pointerId: 2,
+      isPrimary: false,
+    }));
+
+    expect(joystick.getVector().magnitude).toBeGreaterThan(0);
+    expect(element.capturedPointerId).toBe(2);
+
+    joystick.destroy();
+  });
   it("does not release the active pointer for another pointer id", () => {
     const element = new FakeElement();
     const joystick = new VirtualJoystick(element as unknown as HTMLElement, {

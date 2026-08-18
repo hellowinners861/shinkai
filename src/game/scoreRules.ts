@@ -39,6 +39,12 @@ export interface ScanCompletionScore {
   readonly state: ScoreState;
 }
 
+/** A fixed award that does not participate in the ordinary scan streak. */
+export interface FixedScanScoreAward {
+  readonly score: number;
+  readonly state: ScoreState;
+}
+
 /** Inputs accepted by the result-screen score breakdown. */
 export interface ScoreBreakdownInput {
   /** Scan score accumulated during the dive. */
@@ -205,6 +211,28 @@ export function completeScan(
     scanScore,
     firstDiscoveryBonus,
     state: nextState,
+  };
+}
+
+/**
+ * Adds a set-piece score without changing the clean streak or awarding a
+ * first-discovery bonus. Large-creature identification uses this path so its
+ * documented 300 points remain exactly 300.
+ */
+export function awardFixedScanScore(
+  state: ScoreState,
+  score: number,
+): FixedScanScoreAward {
+  const current = normalizeScoreState(state);
+  const fixedScore = normalizeNonNegativeInteger(score);
+  return {
+    score: fixedScore,
+    state: {
+      ...current,
+      scanScoreTotal: normalizeNonNegativeInteger(
+        current.scanScoreTotal + fixedScore,
+      ),
+    },
   };
 }
 
