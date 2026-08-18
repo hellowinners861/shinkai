@@ -20,10 +20,8 @@ import {
   type DiveProgressionState,
 } from '../game/diveProgression';
 import {
-  advanceEncounterSchedule,
   canTakeRockDamage,
   circlesOverlap,
-  createInitialEncounterScheduleState,
   PLAYER_COLLISION_RADIUS,
   RECOVERY_COLLISION_RADIUS,
   RECOVERY_FUEL_GAIN,
@@ -35,6 +33,14 @@ import {
   type EncounterSpawn,
 } from '../game/encounterRules';
 import {
+  generateHazardWaves,
+  getDepthBandNumber,
+  scheduleRecoverySpawns,
+  type HazardBand,
+  type HazardWave,
+  type RecoverySpawn,
+} from '../game/hazardWaveRules';
+import {
   advanceSpeciesSpawnSchedule,
   canSpawnSpecies,
   chooseNonOverlappingSpeciesMotionPosition,
@@ -45,25 +51,45 @@ import {
   getSpeciesScrollSpeed,
   hasSpeciesMotionExited,
   MAX_ACTIVE_SPECIES,
-  resolveSpeciesInteraction,
   selectPixelSpeciesForDepth,
   SPECIES_COLLISION_RADIUS,
   type CatalogSpeciesRecord,
-  type SpeciesInteractionState,
+  SPECIES_DETECTION_RADIUS,
   type SpeciesMotionPlan,
   type SpeciesSpawnRequest,
   type SpawnableSpecies,
 } from '../game/speciesRules';
-import { getSpeciesEncounterPresentation } from '../game/encounterPresentation';
 import {
   drawSpeciesPixelIcon,
   getSpeciesPixelIconDefinitionForSpecies,
 } from '../game/speciesPixelIcons';
+import {
+  advanceScanTargets,
+  getScanProgressPercent,
+  getScanRequiredSeconds,
+  type ScanTarget,
+} from '../game/scanRules';
+import {
+  applyRockDamage,
+  calculateScoreBreakdown,
+  completeScan,
+  createInitialScoreState,
+  type ScoreState,
+} from '../game/scoreRules';
 import type { InputVector } from '../input/vector';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
 import { announce, prefersReducedMotion } from '../platform/preferences';
-import { createDiveResultSnapshot } from '../types/game';
+import {
+  createEmptyRunProgress,
+  readRunProgress,
+  updateRunProgress,
+  writeRunProgress,
+} from '../platform/runProgressStore';
+import {
+  createDiveResultSnapshot,
+  type DiveResultNewDiscovery,
+} from '../types/game';
 
 interface KeyboardSet {
   up: Phaser.Input.Keyboard.Key;
@@ -95,7 +121,19 @@ interface SpeciesObject {
   motionPlan: SpeciesMotionPlan;
   radius: number;
   sequence: number;
-  interactionState: SpeciesInteractionState;
+  scanId: string;
+  progressSeconds: number;
+  completed: boolean;
+  detected: boolean;
+  globallyNew: boolean;
+}
+
+interface ActiveScanStatus {
+  sourceCatalogId: string;
+  displayName: string;
+  progressSeconds: number;
+  requiredSeconds: number;
+  progressPercent: number;
 }
 
 interface HudSnapshot {
@@ -172,16 +210,27 @@ export class GameScene extends Phaser.Scene {
   private reducedMotion = false;
   private diveProgression: DiveProgressionState =
     createInitialDiveProgressionState();
-  private encounterScheduleState = createInitialEncounterScheduleState();
   private encounters: EncounterObject[] = [];
   private encounterSequence = 0;
+  private hazardWaves: readonly HazardWave[] = [];
+  private hazardRockSpawns: readonly EncounterSpawn[] = [];
+  private hazardRockSpawnIndex = 0;
+  private recoverySpawns: readonly RecoverySpawn[] = [];
+  private recoverySpawnIndex = 0;
+  private warnedHazardWaveIndices = new Set<number>();
+  private hazardWarningWaveIndex: number | undefined;
+  private hazardWarningGraphics: Phaser.GameObjects.Graphics | undefined;
+  private hazardWarningLabel: Phaser.GameObjects.Text | undefined;
+  private currentZone: HazardBand = 1;
   private speciesScheduleState = createInitialSpeciesScheduleState();
   private speciesEncounters: SpeciesObject[] = [];
   private speciesSequence = 0;
   private knownSpecies = new Set<string>();
   private discoveredSpecies = new Set<string>();
   private collectedSpecies: Record<string, number> = {};
-  private speciesScore = 0;
+  private scoreState: ScoreState = createInitialScoreState();
+  private activeScanLine: Phaser.GameObjects.Graphics | undefined;
+  private activeScanStatus: ActiveScanStatus | undefined;
   private invulnerabilityRemainingSeconds = 0;
   private playerImpactRemainingSeconds = 0;
   private encounterEventRemainingSeconds = 0;
@@ -207,15 +256,35 @@ export class GameScene extends Phaser.Scene {
     this.terminalTransitionStarted = false;
     this.diveProgression = createInitialDiveProgressionState();
     this.destroyEncounterObjects();
-    this.encounterScheduleState = createInitialEncounterScheduleState();
+    this.clearHazardWarning();
     this.encounterSequence = 0;
+    this.hazardWaves = generateHazardWaves({ seed: 11 });
+    const rockTravelSeconds =
+      (ENCOUNTER_SPAWN_Y - GAME_HEIGHT / 2) / ROCK_SPEED_PX_PER_SECOND;
+    this.hazardRockSpawns = this.hazardWaves
+      .flatMap((wave) => wave.rocks.map((rock) => ({
+        kind: 'rock' as const,
+        lane: rock.lane,
+        atSeconds: Math.max(0, rock.atSeconds - rockTravelSeconds),
+      })))
+      .sort((first, second) => first.atSeconds - second.atSeconds);
+    this.hazardRockSpawnIndex = 0;
+    this.recoverySpawns = scheduleRecoverySpawns({
+      hazardWaves: this.hazardWaves,
+    }).spawns;
+    this.recoverySpawnIndex = 0;
+    this.warnedHazardWaveIndices.clear();
+    this.hazardWarningWaveIndex = undefined;
+    this.currentZone = getDepthBandNumber(0);
+    this.game.registry.set('shinkai.zone', this.currentZone);
     this.destroySpeciesObjects();
+    this.clearActiveScanPresentation();
     this.speciesScheduleState = createInitialSpeciesScheduleState();
     this.speciesSequence = 0;
     this.knownSpecies = new Set(readDiscoveryProgress().discoveredSpecies);
     this.discoveredSpecies = new Set<string>();
     this.collectedSpecies = {};
-    this.speciesScore = 0;
+    this.scoreState = createInitialScoreState();
     this.invulnerabilityRemainingSeconds = 0;
     this.playerImpactRemainingSeconds = 0;
     this.encounterEventRemainingSeconds = 0;
@@ -347,6 +416,7 @@ export class GameScene extends Phaser.Scene {
     this.events.once('shutdown', this.cleanup);
     this.updateHud();
     announce('潜航計器を起動しました。操舵環またはキーボードで操作します。');
+    this.updateZone(0, true);
   }
 
   public update(_time: number, delta: number): void {
@@ -387,21 +457,17 @@ export class GameScene extends Phaser.Scene {
     if (nextProgression.status !== 'descending') {
       return;
     }
+    this.updateZone(nextProgression.depthM);
 
     if (!this.reducedMotion) {
       this.updateMarineSnow(frameSeconds);
     }
 
-    const scheduleUpdate = advanceEncounterSchedule(
-      this.encounterScheduleState,
-      nextProgression.elapsedSeconds,
-    );
-    this.encounterScheduleState = scheduleUpdate.state;
     this.updateEncounterObjects(nextProgression.elapsedSeconds);
-    for (const spawn of scheduleUpdate.spawns) {
-      this.spawnEncounter(spawn, nextProgression.elapsedSeconds);
-    }
+    this.spawnDueHazardEncounters(nextProgression.elapsedSeconds);
+    this.spawnDueRecoveryEncounters(nextProgression.elapsedSeconds);
     this.updateEncounterObjects(nextProgression.elapsedSeconds);
+    this.updateHazardWarning(nextProgression.elapsedSeconds);
 
     const speciesScheduleUpdate = advanceSpeciesSpawnSchedule(
       this.speciesScheduleState,
@@ -432,7 +498,7 @@ export class GameScene extends Phaser.Scene {
       GAME_HEIGHT - 198,
     );
 
-    this.resolveSpeciesInteractions();
+    this.updateSpeciesScans(frameSeconds);
     this.resolveEncounterCollisions();
   }
 
@@ -459,6 +525,38 @@ export class GameScene extends Phaser.Scene {
       container?.removeAttribute('data-paused');
       announce('潜航を再開しました。');
       this.scene.resume();
+    }
+  }
+
+  private spawnDueHazardEncounters(elapsedSeconds: number): void {
+    while (
+      this.hazardRockSpawnIndex < this.hazardRockSpawns.length &&
+      this.hazardRockSpawns[this.hazardRockSpawnIndex]!.atSeconds <=
+        elapsedSeconds + 1e-9
+    ) {
+      const spawn = this.hazardRockSpawns[this.hazardRockSpawnIndex];
+      this.hazardRockSpawnIndex += 1;
+      if (spawn) {
+        this.spawnEncounter(spawn, elapsedSeconds);
+      }
+    }
+  }
+
+  private spawnDueRecoveryEncounters(elapsedSeconds: number): void {
+    while (
+      this.recoverySpawnIndex < this.recoverySpawns.length &&
+      this.recoverySpawns[this.recoverySpawnIndex]!.atSeconds <=
+        elapsedSeconds + 1e-9
+    ) {
+      const spawn = this.recoverySpawns[this.recoverySpawnIndex];
+      this.recoverySpawnIndex += 1;
+      if (spawn) {
+        this.spawnEncounter({
+          kind: 'recovery',
+          lane: spawn.lane,
+          atSeconds: spawn.atSeconds,
+        }, elapsedSeconds);
+      }
     }
   }
 
@@ -545,10 +643,11 @@ export class GameScene extends Phaser.Scene {
       motionPlan,
       radius: position.radius,
       sequence: this.speciesSequence,
-      interactionState: {
-        discovered: false,
-        collected: false,
-      },
+      scanId: `species-${String(this.speciesSequence)}`,
+      progressSeconds: 0,
+      completed: false,
+      detected: false,
+      globallyNew: false,
     };
     this.speciesSequence += 1;
     this.speciesEncounters.push(encounter);
@@ -617,8 +716,9 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private resolveSpeciesInteractions(): void {
+  private updateSpeciesScans(frameSeconds: number): void {
     if (!this.player) {
+      this.clearActiveScanPresentation();
       return;
     }
 
@@ -627,57 +727,219 @@ export class GameScene extends Phaser.Scene {
       y: this.player.y,
       radius: PLAYER_COLLISION_RADIUS,
     };
+    const detectionCircle: Circle = {
+      ...playerCircle,
+      radius: SPECIES_DETECTION_RADIUS,
+    };
+    const newDiscoveryScanIds = new Set<string>();
 
-    for (let index = this.speciesEncounters.length - 1; index >= 0; index -= 1) {
-      const encounter = this.speciesEncounters[index];
-      if (!encounter) {
+    for (const encounter of this.speciesEncounters) {
+      if (encounter.detected || encounter.completed) {
         continue;
       }
 
-      const result = resolveSpeciesInteraction(
-        encounter.interactionState,
-        playerCircle,
+      if (!circlesOverlap(
+        detectionCircle,
         {
           x: encounter.display.x,
           y: encounter.display.y,
           radius: encounter.radius,
         },
-        encounter.species.score,
-      );
-      encounter.interactionState = result.nextState;
+      )) {
+        continue;
+      }
+
+      encounter.detected = true;
       const key = encounter.species.acceptedScientificName;
       const displayName = encounter.species.displayName;
-      const presentation = getSpeciesEncounterPresentation({
-        acceptedScientificName: key,
-        displayName,
-        knownSpecies: this.knownSpecies,
-        discoveredNow: result.discoveredNow,
-        collectedNow: result.collectedNow,
-        scoreDelta: result.scoreDelta,
-      });
+      const globallyNew = !this.knownSpecies.has(key);
+      encounter.globallyNew = globallyNew;
 
-      if (result.discoveredNow) {
+      if (globallyNew) {
         this.knownSpecies.add(key);
         this.discoveredSpecies.add(key);
         this.persistSpeciesDiscovery(key);
+        newDiscoveryScanIds.add(encounter.scanId);
+        this.showEncounterEvent(`NEW! / ${displayName}`, 'species');
         announce('生物を発見しました。' + displayName + '。');
       }
+    }
 
-      if (result.collectedNow) {
-        this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
-        this.persistSpeciesCollection(key);
-        this.speciesScore += result.scoreDelta;
-        this.updateHud();
-        announce(
-          '生物を獲得しました。' + displayName + '、' +
-            String(result.scoreDelta) + '点。',
+    const targets: ScanTarget[] = [];
+    for (const encounter of this.speciesEncounters) {
+      if (!encounter.detected || encounter.completed) {
+        continue;
+      }
+
+      targets.push({
+        id: encounter.scanId,
+        spawnSequence: encounter.sequence,
+        centerDistance: Phaser.Math.Distance.Between(
+          playerCircle.x,
+          playerCircle.y,
+          encounter.display.x,
+          encounter.display.y,
+        ),
+        rarity: encounter.species.rarity,
+        progressSeconds: encounter.progressSeconds,
+        completed: encounter.completed,
+      });
+    }
+
+    const progressUpdate = advanceScanTargets(targets, frameSeconds);
+    const completedTargetIds = new Set(progressUpdate.completedTargetIds);
+    for (const target of progressUpdate.targets) {
+      const encounter = this.speciesEncounters.find(
+        (candidate) => candidate.scanId === target.id,
+      );
+      if (!encounter) {
+        continue;
+      }
+
+      encounter.progressSeconds = target.progressSeconds;
+      encounter.completed = target.completed;
+    }
+
+    for (let index = this.speciesEncounters.length - 1; index >= 0; index -= 1) {
+      const encounter = this.speciesEncounters[index];
+      if (!encounter || !completedTargetIds.has(encounter.scanId)) {
+        continue;
+      }
+
+      const key = encounter.species.acceptedScientificName;
+      const displayName = encounter.species.displayName;
+      const completion = completeScan(
+        this.scoreState,
+        encounter.species.score,
+        encounter.globallyNew,
+      );
+      this.scoreState = completion.state;
+      this.collectedSpecies[key] = (this.collectedSpecies[key] ?? 0) + 1;
+      this.persistSpeciesCollection(key);
+
+      if (!newDiscoveryScanIds.has(encounter.scanId)) {
+        const scoreDelta = completion.scanScore + completion.firstDiscoveryBonus;
+        this.showEncounterEvent(
+          `SCAN COMPLETE / +${String(scoreDelta)}`,
+          'species',
         );
-        this.removeSpeciesAt(index);
+        announce(
+          'スキャンを完了しました。' + displayName + '、' +
+            String(scoreDelta) + '点。',
+        );
       }
 
-      if (presentation) {
-        this.showEncounterEvent(presentation.message, 'species');
+      this.updateHud();
+      this.removeSpeciesAt(index);
+    }
+
+    const activeTarget = progressUpdate.activeTargetId === undefined
+      ? undefined
+      : progressUpdate.targets.find(
+        (target) => target.id === progressUpdate.activeTargetId,
+      );
+    const activeEncounter = activeTarget === undefined
+      ? undefined
+      : this.speciesEncounters.find(
+        (encounter) => encounter.scanId === activeTarget.id &&
+          !encounter.completed,
+      );
+    this.updateActiveScanPresentation(activeEncounter, activeTarget);
+  }
+
+  private updateActiveScanPresentation(
+    encounter: SpeciesObject | undefined,
+    target: ScanTarget | undefined,
+  ): void {
+    if (!this.player || !encounter || !target || encounter.completed) {
+      this.clearActiveScanPresentation();
+      return;
+    }
+
+    const requiredSeconds = getScanRequiredSeconds(encounter.species.rarity);
+    if (requiredSeconds <= 0) {
+      this.clearActiveScanPresentation();
+      return;
+    }
+
+    this.activeScanStatus = {
+      sourceCatalogId: encounter.species.sourceCatalogId,
+      displayName: encounter.species.displayName,
+      progressSeconds: target.progressSeconds ?? 0,
+      requiredSeconds,
+      progressPercent: getScanProgressPercent(target),
+    };
+    this.game.registry?.set('shinkai.activeScanStatus', this.activeScanStatus);
+    this.updateScanRail(this.activeScanStatus);
+
+    if (!this.activeScanLine) {
+      this.activeScanLine = this.add.graphics();
+    }
+    this.activeScanLine.clear();
+    this.activeScanLine.lineStyle(1, 0x6bd9e8, 0.45);
+    this.activeScanLine.beginPath();
+    this.activeScanLine.moveTo(this.player.x, this.player.y);
+    this.activeScanLine.lineTo(encounter.display.x, encounter.display.y);
+    this.activeScanLine.strokePath();
+  }
+
+  private clearActiveScanPresentation(): void {
+    if (this.activeScanLine) {
+      this.activeScanLine.clear();
+      this.activeScanLine.destroy();
+      this.activeScanLine = undefined;
+    }
+    this.activeScanStatus = undefined;
+    this.game.registry?.set('shinkai.activeScanStatus', undefined);
+    this.updateScanRail(undefined);
+  }
+
+  /** Keeps the HTML scan rail in sync with the Phaser-only scan state. */
+  private updateScanRail(status: ActiveScanStatus | undefined): void {
+    const rail = document.getElementById('scan-rail');
+    const targetName = document.getElementById('scan-target-name');
+    const fill = document.getElementById('scan-meter-fill');
+
+    if (!status) {
+      rail?.setAttribute('hidden', '');
+      targetName?.replaceChildren();
+      if (fill instanceof HTMLElement) {
+        fill.style.width = '0%';
       }
+      this.setScanRailAria(rail, fill, '0', 'SCAN / 0%');
+      return;
+    }
+
+    const percent = Number.isFinite(status.progressPercent)
+      ? Phaser.Math.Clamp(status.progressPercent, 0, 100)
+      : 0;
+    const roundedPercent = Math.round(percent * 10) / 10;
+    const percentText = String(roundedPercent);
+    const ariaText = `SCAN / ${status.displayName} / ${percentText}%`;
+
+    rail?.removeAttribute('hidden');
+    targetName?.replaceChildren(status.displayName);
+    if (fill instanceof HTMLElement) {
+      fill.style.width = `${percentText}%`;
+    }
+    this.setScanRailAria(rail, fill, percentText, ariaText);
+  }
+
+  private setScanRailAria(
+    rail: HTMLElement | null,
+    fill: HTMLElement | null,
+    value: string,
+    valueText: string,
+  ): void {
+    for (const element of [rail, fill]) {
+      if (!element) {
+        continue;
+      }
+
+      element.setAttribute('aria-valuemin', '0');
+      element.setAttribute('aria-valuemax', '100');
+      element.setAttribute('aria-valuenow', value);
+      element.setAttribute('aria-valuetext', valueText);
     }
   }
 
@@ -769,6 +1031,81 @@ export class GameScene extends Phaser.Scene {
     return container;
   }
 
+  private updateHazardWarning(elapsedSeconds: number): void {
+    const wave = this.hazardWaves.find((candidate) => {
+      const lastRockAtSeconds = candidate.rocks.reduce(
+        (latest, rock) => Math.max(latest, rock.atSeconds),
+        candidate.atSeconds,
+      );
+      return elapsedSeconds >= candidate.warningAtSeconds &&
+        elapsedSeconds < lastRockAtSeconds;
+    });
+
+    if (!wave) {
+      this.clearHazardWarning();
+      return;
+    }
+
+    if (this.hazardWarningWaveIndex === wave.waveIndex) {
+      return;
+    }
+
+    this.clearHazardWarning();
+    this.hazardWarningWaveIndex = wave.waveIndex;
+
+    const graphics = this.add.graphics();
+    graphics.lineStyle(2, IMPACT_HULL_COLOR, 0.78);
+    for (const lane of wave.rockLanes) {
+      const laneX = LANE_X_BY_NAME[lane];
+      graphics.beginPath();
+      graphics.moveTo(laneX - 14, 148);
+      graphics.lineTo(laneX + 14, 148);
+      graphics.strokePath();
+    }
+    this.hazardWarningGraphics = graphics;
+    this.hazardWarningLabel = this.add
+      .text(28, 124, 'HAZARD', {
+        color: '#ff6b5e',
+        fontFamily: 'monospace',
+        fontSize: '12px',
+      })
+      .setAlpha(0.86);
+
+    if (!this.warnedHazardWaveIndices.has(wave.waveIndex)) {
+      this.warnedHazardWaveIndices.add(wave.waveIndex);
+      this.showEncounterEvent('HAZARD', 'impact');
+      announce('危険ウェーブを検知しました。');
+    }
+  }
+
+  private clearHazardWarning(): void {
+    this.hazardWarningGraphics?.clear();
+    this.hazardWarningGraphics?.destroy();
+    this.hazardWarningGraphics = undefined;
+    this.hazardWarningLabel?.destroy();
+    this.hazardWarningLabel = undefined;
+    this.hazardWarningWaveIndex = undefined;
+  }
+
+  private updateZone(depthM: number, force = false): void {
+    const zone = getDepthBandNumber(depthM);
+    if (!force && zone === this.currentZone) {
+      return;
+    }
+
+    this.currentZone = zone;
+    this.game.registry?.set('shinkai.zone', zone);
+    const zoneReadout = document.getElementById('zone-readout');
+    zoneReadout?.replaceChildren(String(zone));
+    zoneReadout?.setAttribute('data-zone', String(zone));
+    const depth = Number.isFinite(depthM)
+      ? Math.max(0, Math.floor(depthM))
+      : 0;
+    const message = `ZONE ${String(zone)} / DEPTH ${String(depth).padStart(4, '0')}m`;
+    this.showEncounterEvent(message, 'zone');
+    announce(message);
+  }
+
   private updateEncounterObjects(elapsedSeconds: number): void {
     for (let index = this.encounters.length - 1; index >= 0; index -= 1) {
       const encounter = this.encounters[index];
@@ -826,6 +1163,7 @@ export class GameScene extends Phaser.Scene {
         }
 
         this.removeEncounterAt(index);
+        this.scoreState = applyRockDamage(this.scoreState);
         const previousStatus = this.diveProgression.status;
         this.diveProgression = adjustDiveFuel(
           this.diveProgression,
@@ -916,7 +1254,7 @@ export class GameScene extends Phaser.Scene {
 
   private showEncounterEvent(
     message: string,
-    kind: 'impact' | 'recovery' | 'species',
+    kind: 'impact' | 'recovery' | 'species' | 'zone',
   ): void {
     this.encounterEventRemainingSeconds = ENCOUNTER_EVENT_DURATION_SECONDS;
     const eventElement = document.getElementById('encounter-event');
@@ -1049,7 +1387,7 @@ export class GameScene extends Phaser.Scene {
       depthText: `${String(depth).padStart(4, '0')} m`,
       fuelText: `${fuel.toFixed(1)}%`,
       fuelMeterValue: String(fuel),
-      scoreText: String(Math.max(0, Math.floor(this.speciesScore))),
+      scoreText: String(this.getLiveScoreTotal()),
       statusPrimary: statusText.primary,
       statusSecondary: statusText.secondary,
     };
@@ -1090,6 +1428,15 @@ export class GameScene extends Phaser.Scene {
     this.hudSnapshot = snapshot;
   }
 
+  private getLiveScoreTotal(): number {
+    return Math.max(
+      0,
+      Math.floor(
+        this.scoreState.scanScoreTotal + this.scoreState.firstDiscoveryBonusTotal,
+      ),
+    );
+  }
+
   private getStatusText(): { primary: string; secondary: string } {
     switch (this.diveProgression.status) {
       case 'cleared':
@@ -1102,6 +1449,26 @@ export class GameScene extends Phaser.Scene {
           secondary: `AUTO / ${DIVE_AUTO_DESCENT_SPEED_M_PER_SECOND} M/S`,
         };
     }
+  }
+
+  private getNewDiscoverySnapshots(): readonly DiveResultNewDiscovery[] {
+    const discoveries: DiveResultNewDiscovery[] = [];
+    for (const acceptedScientificName of this.discoveredSpecies) {
+      const catalogRecord = SPECIES_CATALOG.find(
+        (record) => record.accepted_scientific_name === acceptedScientificName,
+      );
+      if (!catalogRecord) {
+        continue;
+      }
+
+      discoveries.push({
+        sourceCatalogId: catalogRecord.source_catalog_id,
+        displayName: catalogRecord.display_name,
+        acceptedScientificName: catalogRecord.accepted_scientific_name,
+        category: catalogRecord.category,
+      });
+    }
+    return discoveries;
   }
 
   private transitionToResult(): void {
@@ -1118,10 +1485,41 @@ export class GameScene extends Phaser.Scene {
     this.paused = true;
     this.resetInput();
     this.destroyEncounterObjects();
+    this.clearHazardWarning();
+    this.destroySpeciesObjects();
+    this.clearActiveScanPresentation();
     this.clearEncounterEvent();
 
+    const scoreBreakdown = calculateScoreBreakdown({
+      scanScoreTotal: this.scoreState.scanScoreTotal,
+      firstDiscoveryBonusTotal: this.scoreState.firstDiscoveryBonusTotal,
+      reachedDepthM: this.diveProgression.depthM,
+      remainingFuel: this.diveProgression.fuel,
+    });
+    let updatedProgress = createEmptyRunProgress();
+    let isNewBest = false;
+    try {
+      const previousProgress = readRunProgress();
+      isNewBest = scoreBreakdown.finalScore > previousProgress.bestScore;
+      updatedProgress = updateRunProgress(previousProgress, {
+        outcome: status,
+        score: scoreBreakdown.finalScore,
+        reachedDepthM: this.diveProgression.depthM,
+      });
+      writeRunProgress(updatedProgress);
+    } catch {
+      // Result presentation must remain available even when persistence fails.
+    }
+
     const result = createDiveResultSnapshot(this.diveProgression, {
-      score: this.speciesScore,
+      score: scoreBreakdown.finalScore,
+      scoreBreakdown,
+      newDiscoveries: this.getNewDiscoverySnapshots(),
+      isNewBest,
+      bestScore: updatedProgress.bestScore,
+      bestDepthM: updatedProgress.bestDepthM,
+      diveCount: updatedProgress.diveCount,
+      clearCount: updatedProgress.clearCount,
       discoveredCount: this.discoveredSpecies.size,
       collectedCount: Object.values(this.collectedSpecies).reduce(
         (total, count) => total + count,
@@ -1186,7 +1584,9 @@ export class GameScene extends Phaser.Scene {
   private readonly cleanup = (): void => {
     this.game.events.off('shinkai:lifecycle', this.handleLifecycleStatus);
     this.destroyEncounterObjects();
+    this.clearHazardWarning();
     this.destroySpeciesObjects();
+    this.clearActiveScanPresentation();
     this.clearEncounterEvent();
     this.clearImpactFeedback();
     this.player = undefined;

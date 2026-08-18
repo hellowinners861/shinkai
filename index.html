@@ -47,7 +47,10 @@
         <section id='game-ui' class='html-ui-layer' hidden aria-label='潜航計器と操作'>
           <div class='game-hud'>
             <div class='telemetry-item telemetry-item--depth'>
-              <span class='telemetry-label'>DEPTH</span>
+              <div class='telemetry-value-row'>
+                <span class='telemetry-label'>DEPTH</span>
+                <span class='zone-readout-group'>ZONE <span id='zone-readout'>1</span></span>
+              </div>
               <strong id='depth-readout'>0000 m</strong>
             </div>
             <div class='telemetry-item telemetry-item--fuel'>
@@ -70,6 +73,23 @@
             <div class='telemetry-item telemetry-item--score' aria-label='生物スコア'>
               <span class='telemetry-label'>SCORE</span>
               <strong id='score-readout'>0</strong>
+            </div>
+          </div>
+          <div
+            id='scan-rail'
+            class='scan-rail'
+            hidden
+            role='progressbar'
+            aria-label='生物スキャン進捗'
+            aria-valuemin='0'
+            aria-valuemax='100'
+            aria-valuenow='0'
+            aria-valuetext='SCAN / 0%'
+          >
+            <span class='scan-label'>SCAN</span>
+            <strong id='scan-target-name'></strong>
+            <div class='scan-meter'>
+              <span id='scan-meter-fill'></span>
             </div>
           </div>
           <div id='impact-feedback' class='impact-feedback' aria-hidden='true'></div>
@@ -134,7 +154,27 @@
                 <p class='result-kicker'>PELAGIC RESEARCH UNIT / DIVE RESULT</p>
                 <h1 id='result-heading'>潜航結果</h1>
                 <p id='result-outcome' class='result-outcome' role='status'>調査完了</p>
+                <span id='result-new-best' class='result-new-best' hidden>NEW BEST</span>
               </header>
+
+              <section class='result-score-hero' aria-label='最終スコア'>
+                <span class='result-score-label'>FINAL SCORE</span>
+                <strong id='result-score'>0</strong>
+                <div class='result-score-meta'>
+                  <span class='result-score-meta-item'>
+                    <span class='result-score-meta-label'>BEST</span>
+                    <span id='result-best-score'>0</span>
+                  </span>
+                  <span class='result-score-meta-item'>
+                    <span class='result-score-meta-label'>DIVE</span>
+                    <span id='result-dive-count'>0</span>
+                  </span>
+                  <span class='result-score-meta-item'>
+                    <span class='result-score-meta-label'>CLEAR</span>
+                    <span id='result-clear-count'>0</span>
+                  </span>
+                </div>
+              </section>
 
               <dl class='result-stats' aria-label='潜航結果の詳細'>
                 <div class='result-stat'>
@@ -150,18 +190,45 @@
                   <dd id='result-elapsed'>0.0秒</dd>
                 </div>
                 <div class='result-stat'>
-                  <dt>スコア</dt>
-                  <dd id='result-score'>0</dd>
-                </div>
-                <div class='result-stat'>
-                  <dt>発見数</dt>
-                  <dd id='result-discovered'>0</dd>
-                </div>
-                <div class='result-stat'>
-                  <dt>獲得数</dt>
+                  <dt>スキャン数</dt>
                   <dd id='result-collected'>0</dd>
                 </div>
+                <div class='result-stat'>
+                  <dt>今回の新発見</dt>
+                  <dd id='result-discovered'>0</dd>
+                </div>
               </dl>
+
+              <section class='result-breakdown' aria-labelledby='result-breakdown-heading'>
+                <h2 id='result-breakdown-heading'>SCORE BREAKDOWN</h2>
+                <dl>
+                  <div class='result-breakdown-row'>
+                    <dt>SCAN DATA</dt>
+                    <dd id='result-scan-score'>0</dd>
+                  </div>
+                  <div class='result-breakdown-row'>
+                    <dt>NEW SPECIES</dt>
+                    <dd id='result-new-species-score'>0</dd>
+                  </div>
+                  <div class='result-breakdown-row'>
+                    <dt>DEPTH</dt>
+                    <dd id='result-depth-score'>0</dd>
+                  </div>
+                  <div class='result-breakdown-row'>
+                    <dt>FUEL</dt>
+                    <dd id='result-fuel-score'>0</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section
+                class='result-discoveries'
+                aria-labelledby='result-discoveries-heading'
+              >
+                <h2 id='result-discoveries-heading'>今回の新発見</h2>
+                <ul id='result-discovery-list'></ul>
+                <p id='result-discovery-empty'>今回の新発見はありません</p>
+              </section>
 
               <div class='result-actions'>
                 <button
