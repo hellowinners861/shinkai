@@ -104,6 +104,13 @@ import {
   selectSearchlightTargetWithPriority,
   type SearchlightTarget,
 } from '../game/searchlightRules';
+import {
+  createSubmarineView,
+  destroySubmarineView,
+  drawSearchlightBeam,
+  updateSubmarineView as updateSubmarineRendererView,
+  type SubmarineView,
+} from '../game/submarineRenderer';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
 import { announce, prefersReducedMotion } from '../platform/preferences';
@@ -203,8 +210,6 @@ const ENCOUNTER_EVENT_DURATION_SECONDS = 1.1;
 const PLAYER_IMPACT_DISPLAY_SECONDS = 0.45;
 const IMPACT_FEEDBACK_DURATION_MS = 280;
 const LARGE_CONTACT_FEEDBACK_DURATION_MS = 360;
-const SEARCHLIGHT_INNER_HALF_ANGLE_RADIANS =
-  SEARCHLIGHT_HALF_ANGLE_RADIANS * 0.56;
 const GAME_OBJECT_DEPTH = Object.freeze({
   background: -100,
   predictionPath: 5,
@@ -215,7 +220,6 @@ const GAME_OBJECT_DEPTH = Object.freeze({
   player: 40,
   chapterOverlay: 50,
 });
-const NORMAL_HULL_COLOR = 0x74f2d0;
 const IMPACT_HULL_COLOR = 0xff6b5e;
 const LANE_X_BY_NAME: Record<EncounterLane, number> = {
   center: GAME_WIDTH / 2,
@@ -259,7 +263,7 @@ const SPECIES_CATALOG = speciesCatalogData as readonly CatalogSpeciesRecord[];
 /** Playfield presentation for the Abyssal Field Console shell. */
 export class GameScene extends Phaser.Scene {
   private player: Phaser.GameObjects.Container | undefined;
-  private playerHull: Phaser.GameObjects.Rectangle | undefined;
+  private submarineView: SubmarineView | undefined;
   private joystick: VirtualJoystick | undefined;
   private searchlightJoystick: VirtualJoystick | undefined;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
@@ -481,22 +485,9 @@ export class GameScene extends Phaser.Scene {
       GAME_OBJECT_DEPTH.searchlightBeam,
     );
 
-    const hull = this.add
-      .rectangle(0, 0, 68, 36, 0x0a2b36)
-      .setStrokeStyle(2, NORMAL_HULL_COLOR, 0.86);
-    const tail = this.add
-      .rectangle(-29, 0, 12, 7, 0x27606a)
-      .setStrokeStyle(1, 0x6bd9e8, 0.62);
-    const fin = this.add.rectangle(-4, -21, 20, 4, 0x27606a).setAlpha(0.86);
-    const observationWindow = this.add
-      .circle(19, 0, 8, 0x02070b)
-      .setStrokeStyle(1, 0x6bd9e8, 0.94);
-    const forwardLight = this.add.circle(31, 0, 3, 0xf1b955).setAlpha(0.9);
-    const player = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-    player.add([hull, tail, fin, observationWindow, forwardLight]);
-    player.setDepth(GAME_OBJECT_DEPTH.player);
-    this.player = player;
-    this.playerHull = hull;
+    this.submarineView = createSubmarineView(this);
+    this.submarineView.root.setDepth(GAME_OBJECT_DEPTH.player);
+    this.player = this.submarineView.root;
 
     if (this.input.keyboard) {
       this.cursors = this.input.keyboard.createCursorKeys();
@@ -630,6 +621,7 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.updateSearchlight(frameSeconds);
+    this.updateSubmarinePresentation(nextProgression.elapsedSeconds);
     this.renderSearchlightBeam();
     this.updateLargeCreatureObjects(frameSeconds);
     this.updateSpeciesScans(frameSeconds);
@@ -690,58 +682,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const origin = { x: this.player.x, y: this.player.y };
-    const beam = this.searchlightBeam;
-    beam.clear();
-    this.drawSearchlightConeLayer(
-      beam,
-      origin.x,
-      origin.y,
-      SEARCHLIGHT_RANGE_PX,
-      SEARCHLIGHT_HALF_ANGLE_RADIANS,
-      0.05,
+    drawSearchlightBeam(
+      this.searchlightBeam,
+      { x: this.player.x, y: this.player.y },
+      this.searchlightAngleRadians,
     );
-    this.drawSearchlightConeLayer(
-      beam,
-      origin.x,
-      origin.y,
-      SEARCHLIGHT_RANGE_PX * 0.94,
-      SEARCHLIGHT_INNER_HALF_ANGLE_RADIANS,
-      0.08,
-    );
-    beam.lineStyle(2, 0xf1d58a, 0.3);
-    beam.beginPath();
-    beam.moveTo(origin.x, origin.y);
-    beam.lineTo(
-      origin.x + Math.cos(this.searchlightAngleRadians) * SEARCHLIGHT_RANGE_PX,
-      origin.y + Math.sin(this.searchlightAngleRadians) * SEARCHLIGHT_RANGE_PX,
-    );
-    beam.strokePath();
-  }
-
-  private drawSearchlightConeLayer(
-    graphics: Phaser.GameObjects.Graphics,
-    originX: number,
-    originY: number,
-    range: number,
-    halfAngle: number,
-    alpha: number,
-  ): void {
-    const leftAngle = this.searchlightAngleRadians - halfAngle;
-    const rightAngle = this.searchlightAngleRadians + halfAngle;
-    graphics.fillStyle(0xf1d58a, alpha);
-    graphics.beginPath();
-    graphics.moveTo(originX, originY);
-    graphics.lineTo(
-      originX + Math.cos(leftAngle) * range,
-      originY + Math.sin(leftAngle) * range,
-    );
-    graphics.lineTo(
-      originX + Math.cos(rightAngle) * range,
-      originY + Math.sin(rightAngle) * range,
-    );
-    graphics.closePath();
-    graphics.fillPath();
   }
 
   private advanceLargeCreatureEventState(
@@ -881,7 +826,7 @@ export class GameScene extends Phaser.Scene {
     );
     this.invulnerabilityRemainingSeconds = ROCK_INVULNERABILITY_SECONDS;
     this.playerImpactRemainingSeconds = PLAYER_IMPACT_DISPLAY_SECONDS;
-    this.playerHull?.setStrokeStyle(2, IMPACT_HULL_COLOR, 1);
+    this.updateSubmarinePresentation(this.diveProgression.elapsedSeconds);
     this.triggerImpactFeedback();
     this.showEncounterEvent(
       'MASSIVE IMPACT / FUEL -' + String(result.damageApplied),
@@ -1780,7 +1725,7 @@ export class GameScene extends Phaser.Scene {
         );
         this.invulnerabilityRemainingSeconds = ROCK_INVULNERABILITY_SECONDS;
         this.playerImpactRemainingSeconds = PLAYER_IMPACT_DISPLAY_SECONDS;
-        this.playerHull?.setStrokeStyle(2, IMPACT_HULL_COLOR, 1);
+        this.updateSubmarinePresentation(this.diveProgression.elapsedSeconds);
         this.triggerImpactFeedback();
         this.showEncounterEvent('HULL IMPACT / FUEL -10', 'impact');
         this.updateHud();
@@ -1932,13 +1877,20 @@ export class GameScene extends Phaser.Scene {
       0,
       this.playerImpactRemainingSeconds - seconds,
     );
-    this.playerHull?.setStrokeStyle(
-      2,
-      this.playerImpactRemainingSeconds > 0
-        ? IMPACT_HULL_COLOR
-        : NORMAL_HULL_COLOR,
-      this.playerImpactRemainingSeconds > 0 ? 1 : 0.86,
-    );
+    this.updateSubmarinePresentation(this.diveProgression.elapsedSeconds);
+  }
+
+  private updateSubmarinePresentation(elapsedSeconds: number): void {
+    if (!this.submarineView) {
+      return;
+    }
+
+    updateSubmarineRendererView(this.submarineView, {
+      angleRadians: this.searchlightAngleRadians,
+      elapsedSeconds,
+      impact: this.playerImpactRemainingSeconds > 0,
+      reducedMotion: this.reducedMotion,
+    });
   }
 
   private drawFilledPolygon(
@@ -2247,8 +2199,9 @@ export class GameScene extends Phaser.Scene {
     this.clearActiveScanPresentation();
     this.clearEncounterEvent();
     this.clearImpactFeedback();
+    destroySubmarineView(this.submarineView);
+    this.submarineView = undefined;
     this.player = undefined;
-    this.playerHull = undefined;
     this.resetInput();
     this.joystick?.destroy();
     this.joystick = undefined;
