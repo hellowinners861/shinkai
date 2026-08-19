@@ -10,6 +10,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Purple glass shrimp",
+    "display_name_ja": "ムラサキガラスエビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -46,7 +48,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107582&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Purple glass shrimp"
+    "display_name": "ムラサキガラスエビ"
   },
   {
     "source_catalog_id": "F008",
@@ -59,6 +61,8 @@
     "synonyms": [],
     "preferred_ja_name": "ミズウオ",
     "preferred_en_name": "Long snouted lancetfish",
+    "display_name_ja": "ミズウオ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -108,6 +112,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Vent shrimp",
+    "display_name_ja": "アルビノカリス熱水エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -144,7 +150,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=378091&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Vent shrimp"
+    "display_name": "アルビノカリス熱水エビ"
   },
   {
     "source_catalog_id": "F057",
@@ -155,8 +161,10 @@
     "taxon_authority_id": 105863,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ミツボシカスベ",
     "preferred_en_name": "Arctic skate",
+    "display_name_ja": "ミツボシカスベ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -193,7 +201,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Amblyraja-hyperborea.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Arctic skate"
+    "display_name": "ミツボシカスベ"
   },
   {
     "source_catalog_id": "I036",
@@ -204,8 +212,10 @@
     "taxon_authority_id": 138747,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ダイオウホタルイカモドキ",
     "preferred_en_name": "Sharpear enope squid",
+    "display_name_ja": "ダイオウホタルイカモドキ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -242,7 +252,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=138747&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Sharpear enope squid"
+    "display_name": "ダイオウホタルイカモドキ"
   },
   {
     "source_catalog_id": "F013",
@@ -253,8 +263,10 @@
     "taxon_authority_id": 126393,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オニキンメ",
     "preferred_en_name": "Common fangtooth",
+    "display_name_ja": "オニキンメ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -291,7 +303,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Anoplogaster-cornuta.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Common fangtooth"
+    "display_name": "オニキンメ"
   },
   {
     "source_catalog_id": "F035",
@@ -302,8 +314,10 @@
     "taxon_authority_id": 126486,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "トガリカナダダラ",
     "preferred_en_name": "Blue antimora",
+    "display_name_ja": "トガリカナダダラ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -340,7 +354,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Antimora-rostrata.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Blue antimora"
+    "display_name": "トガリカナダダラ"
   },
   {
     "source_catalog_id": "F039",
@@ -353,6 +367,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Black scabbardfish",
+    "display_name_ja": "黒太刀ウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -389,7 +405,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Aphanopus-carbo.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Black scabbardfish"
+    "display_name": "黒太刀ウオ"
   },
   {
     "source_catalog_id": "I021",
@@ -402,6 +418,8 @@
     "synonyms": [],
     "preferred_ja_name": "ダイオウイカ",
     "preferred_en_name": "Giant squid",
+    "display_name_ja": "ダイオウイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -449,8 +467,10 @@
     "taxon_authority_id": 127306,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "トガリムネエソ",
     "preferred_en_name": "Lovely hatchetfish",
+    "display_name_ja": "トガリムネエソ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -487,7 +507,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Argyropelecus-aculeatus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Lovely hatchetfish"
+    "display_name": "トガリムネエソ"
   },
   {
     "source_catalog_id": "I002",
@@ -500,6 +520,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Reynolds' deep-sea crown jelly",
+    "display_name_ja": "レイノルズアトラクラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -536,7 +558,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1568662&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Reynolds' deep-sea crown jelly"
+    "display_name": "レイノルズアトラクラゲ"
   },
   {
     "source_catalog_id": "I001",
@@ -547,8 +569,10 @@
     "taxon_authority_id": 135282,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ムラサキカムリクラゲ",
     "preferred_en_name": "Atolla jelly",
+    "display_name_ja": "ムラサキカムリクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -585,7 +609,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135282&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Atolla jelly"
+    "display_name": "ムラサキカムリクラゲ"
   },
   {
     "source_catalog_id": "F029",
@@ -596,8 +620,10 @@
     "taxon_authority_id": 159425,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "アカクジラウオダマシ",
     "preferred_en_name": "Velvet whalefish",
+    "display_name_ja": "アカクジラウオダマシ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -634,7 +660,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Barbourisia-rufa.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Velvet whalefish"
+    "display_name": "アカクジラウオダマシ"
   },
   {
     "source_catalog_id": "I015",
@@ -647,6 +673,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Giant larvacean",
+    "display_name_ja": "チャロン巨大オタマボヤ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Chordata",
@@ -683,7 +711,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=103394&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Giant larvacean"
+    "display_name": "チャロン巨大オタマボヤ"
   },
   {
     "source_catalog_id": "I020",
@@ -696,6 +724,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Blue-tailed giant larvacean",
+    "display_name_ja": "青尾巨大オタマボヤ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Chordata",
@@ -732,7 +762,7 @@
     "fact_source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5159439/",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Blue-tailed giant larvacean"
+    "display_name": "青尾巨大オタマボヤ"
   },
   {
     "source_catalog_id": "I010",
@@ -743,8 +773,10 @@
     "taxon_authority_id": 265828,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "チョウクラゲモドキ",
     "preferred_en_name": "Lobate comb jelly",
+    "display_name_ja": "チョウクラゲモドキ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Ctenophora",
@@ -781,7 +813,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265828&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Lobate comb jelly"
+    "display_name": "チョウクラゲモドキ"
   },
   {
     "source_catalog_id": "I014",
@@ -794,6 +826,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Bathyctena comb jelly",
+    "display_name_ja": "バチクテナクシクラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Ctenophora",
@@ -830,7 +864,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265844&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Bathyctena comb jelly"
+    "display_name": "バチクテナクシクラゲ"
   },
   {
     "source_catalog_id": "I006",
@@ -843,6 +877,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea jelly",
+    "display_name_ja": "バチコルス深海クラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -879,7 +915,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=458859&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea jelly"
+    "display_name": "バチコルス深海クラゲ"
   },
   {
     "source_catalog_id": "I085",
@@ -890,8 +926,10 @@
     "taxon_authority_id": 183000,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ガラパゴスシンカイヒバリガイ",
     "preferred_en_name": "Hydrothermal vent mussel",
+    "display_name_ja": "ガラパゴスシンカイヒバリガイ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -928,7 +966,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=183000&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Hydrothermal vent mussel"
+    "display_name": "ガラパゴスシンカイヒバリガイ"
   },
   {
     "source_catalog_id": "I018",
@@ -941,6 +979,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Cone siphonophore",
+    "display_name_ja": "トガリクダクラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -977,7 +1017,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135480&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Cone siphonophore"
+    "display_name": "トガリクダクラゲ"
   },
   {
     "source_catalog_id": "F012",
@@ -990,6 +1030,8 @@
     "synonyms": [],
     "preferred_ja_name": "オオイトヒキイワシ",
     "preferred_en_name": "Tripodfish",
+    "display_name_ja": "オオイトヒキイワシ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1037,8 +1079,10 @@
     "taxon_authority_id": 126370,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "シンカイエソ",
     "preferred_en_name": "Highfin lizardfish",
+    "display_name_ja": "シンカイエソ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1075,7 +1119,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Bathysaurus-mollis.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Highfin lizardfish"
+    "display_name": "シンカイエソ"
   },
   {
     "source_catalog_id": "I032",
@@ -1086,8 +1130,10 @@
     "taxon_authority_id": 138848,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ナツメイカ",
     "preferred_en_name": "Deep-sea squid",
+    "display_name_ja": "ナツメイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -1124,7 +1170,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=138848&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea squid"
+    "display_name": "ナツメイカ"
   },
   {
     "source_catalog_id": "I081",
@@ -1137,6 +1183,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Bartlett's deep-sea shrimp",
+    "display_name_ja": "バートレット深海エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -1173,7 +1221,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1391796&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Bartlett's deep-sea shrimp"
+    "display_name": "バートレット深海エビ"
   },
   {
     "source_catalog_id": "F038",
@@ -1186,6 +1234,8 @@
     "synonyms": [],
     "preferred_ja_name": "キンメダイ",
     "preferred_en_name": "Splendid alfonsino",
+    "display_name_ja": "キンメダイ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1235,6 +1285,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Snaggletooth",
+    "display_name_ja": "ギザ歯ウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1271,7 +1323,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Borostomias-antarcticus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Snaggletooth"
+    "display_name": "ギザ歯ウオ"
   },
   {
     "source_catalog_id": "I065",
@@ -1282,8 +1334,10 @@
     "taxon_authority_id": 440289,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ガラパゴスユノハナガニ",
     "preferred_en_name": "Hydrothermal vent crab",
+    "display_name_ja": "ガラパゴスユノハナガニ",
+    "ja_name_status": "established",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -1320,7 +1374,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=440289&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Hydrothermal vent crab"
+    "display_name": "ガラパゴスユノハナガニ"
   },
   {
     "source_catalog_id": "F050",
@@ -1333,6 +1387,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Black dogfish",
+    "display_name_ja": "黒ひかりトゲザメ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1369,7 +1425,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Centroscyllium-fabricii.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Black dogfish"
+    "display_name": "黒ひかりトゲザメ"
   },
   {
     "source_catalog_id": "F051",
@@ -1380,8 +1436,10 @@
     "taxon_authority_id": 105907,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "マルバラユメザメ",
     "preferred_en_name": "Portuguese dogfish",
+    "display_name_ja": "マルバラユメザメ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1418,7 +1476,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Centroscymnus-coelolepis.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Portuguese dogfish"
+    "display_name": "マルバラユメザメ"
   },
   {
     "source_catalog_id": "F044",
@@ -1429,8 +1487,10 @@
     "taxon_authority_id": 126537,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ビワアンコウ",
     "preferred_en_name": "Kroyer's deep-sea angler fish",
+    "display_name_ja": "ビワアンコウ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1467,7 +1527,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Ceratias-holboelli.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Kroyer's deep-sea angler fish"
+    "display_name": "ビワアンコウ"
   },
   {
     "source_catalog_id": "I058",
@@ -1480,6 +1540,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Golden deep-sea crab",
+    "display_name_ja": "コガネヘリガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -1516,7 +1578,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107369&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Golden deep-sea crab"
+    "display_name": "コガネヘリガニ"
   },
   {
     "source_catalog_id": "I057",
@@ -1529,6 +1591,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Atlantic deep-sea red crab",
+    "display_name_ja": "大西洋アカヘリガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -1565,7 +1629,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=158407&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Atlantic deep-sea red crab"
+    "display_name": "大西洋アカヘリガニ"
   },
   {
     "source_catalog_id": "F014",
@@ -1576,8 +1640,10 @@
     "taxon_authority_id": 127338,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ホウライエソ",
     "preferred_en_name": "Sloane's viperfish",
+    "display_name_ja": "ホウライエソ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1614,7 +1680,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Chauliodus-sloani.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Sloane's viperfish"
+    "display_name": "ホウライエソ"
   },
   {
     "source_catalog_id": "F007",
@@ -1625,8 +1691,10 @@
     "taxon_authority_id": 126840,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オニボウズギス",
     "preferred_en_name": "Black swallower",
+    "display_name_ja": "オニボウズギス",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1663,7 +1731,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Chiasmodon-niger.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Black swallower"
+    "display_name": "オニボウズギス"
   },
   {
     "source_catalog_id": "F045",
@@ -1676,6 +1744,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Rabbit fish",
+    "display_name_ja": "ウサギギンザメ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1712,7 +1782,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Chimaera-monstrosa.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Rabbit fish"
+    "display_name": "ウサギギンザメ"
   },
   {
     "source_catalog_id": "I031",
@@ -1723,8 +1793,10 @@
     "taxon_authority_id": 341796,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ツクシユウレイイカ",
     "preferred_en_name": "Calyx squid",
+    "display_name_ja": "ツクシユウレイイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -1761,7 +1833,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=341796&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Calyx squid"
+    "display_name": "ツクシユウレイイカ"
   },
   {
     "source_catalog_id": "F053",
@@ -1774,6 +1846,8 @@
     "synonyms": [],
     "preferred_ja_name": "ラブカ",
     "preferred_en_name": "Frilled shark",
+    "display_name_ja": "ラブカ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -1823,6 +1897,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Cirrate octopus",
+    "display_name_ja": "長ひげ浮きダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -1859,7 +1935,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=342212&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Cirrate octopus"
+    "display_name": "長ひげ浮きダコ"
   },
   {
     "source_catalog_id": "I043",
@@ -1870,8 +1946,10 @@
     "taxon_authority_id": 139174,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ヒゲナガダコ",
     "preferred_en_name": "Blind cirrate octopus",
+    "display_name_ja": "ヒゲナガダコ",
+    "ja_name_status": "established",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -1908,7 +1986,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=139174&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Blind cirrate octopus"
+    "display_name": "ヒゲナガダコ"
   },
   {
     "source_catalog_id": "I009",
@@ -1919,8 +1997,10 @@
     "taxon_authority_id": 117854,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ニジクラゲ",
     "preferred_en_name": "Silky jelly",
+    "display_name_ja": "ニジクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -1957,7 +2037,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=117854&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Silky jelly"
+    "display_name": "ニジクラゲ"
   },
   {
     "source_catalog_id": "F033",
@@ -1968,8 +2048,10 @@
     "taxon_authority_id": 272313,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "イバラヒゲ",
     "preferred_en_name": "Pacific grenadier",
+    "display_name_ja": "イバラヒゲ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2006,7 +2088,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Coryphaenoides-acrolepis.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Pacific grenadier"
+    "display_name": "イバラヒゲ"
   },
   {
     "source_catalog_id": "F031",
@@ -2017,8 +2099,10 @@
     "taxon_authority_id": 158952,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ヨロイダラ",
     "preferred_en_name": "Abyssal grenadier",
+    "display_name_ja": "ヨロイダラ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2055,7 +2139,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Coryphaenoides-armatus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Abyssal grenadier"
+    "display_name": "ヨロイダラ"
   },
   {
     "source_catalog_id": "F032",
@@ -2068,6 +2152,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Roundnose grenadier",
+    "display_name_ja": "丸鼻ネズミウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2104,7 +2190,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Coryphaenoides-rupestris.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Roundnose grenadier"
+    "display_name": "丸鼻ネズミウオ"
   },
   {
     "source_catalog_id": "I007",
@@ -2117,6 +2203,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Psychedelic medusa",
+    "display_name_ja": "サイケデリッククラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -2153,7 +2241,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=285347&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Psychedelic medusa"
+    "display_name": "サイケデリッククラゲ"
   },
   {
     "source_catalog_id": "F019",
@@ -2166,6 +2254,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Veiled anglemouth",
+    "display_name_ja": "小口アゴウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2202,7 +2292,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Cyclothone-microdon.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Veiled anglemouth"
+    "display_name": "小口アゴウオ"
   },
   {
     "source_catalog_id": "F020",
@@ -2213,8 +2303,10 @@
     "taxon_authority_id": 127288,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ウスオニハダカ",
     "preferred_en_name": "Tan bristlemouth",
+    "display_name_ja": "ウスオニハダカ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2251,7 +2343,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Cyclothone-pallida.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Tan bristlemouth"
+    "display_name": "ウスオニハダカ"
   },
   {
     "source_catalog_id": "I060",
@@ -2264,6 +2356,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Spider crab",
+    "display_name_ja": "キルトマイアクモガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -2300,7 +2394,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=441894&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Spider crab"
+    "display_name": "キルトマイアクモガニ"
   },
   {
     "source_catalog_id": "I079",
@@ -2313,6 +2407,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea shrimp",
+    "display_name_ja": "デバスピス深海エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -2349,7 +2445,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1790004&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea shrimp"
+    "display_name": "デバスピス深海エビ"
   },
   {
     "source_catalog_id": "F027",
@@ -2362,6 +2458,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Brownsnout spookfish",
+    "display_name_ja": "茶鼻幽霊ウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2398,7 +2496,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Dolichopteryx-longipes.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Brownsnout spookfish"
+    "display_name": "茶鼻幽霊ウオ"
   },
   {
     "source_catalog_id": "I062",
@@ -2411,6 +2509,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Long-legged spider crab",
+    "display_name_ja": "ホソアシクモガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -2447,7 +2547,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107316&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Long-legged spider crab"
+    "display_name": "ホソアシクモガニ"
   },
   {
     "source_catalog_id": "F025",
@@ -2458,8 +2558,10 @@
     "taxon_authority_id": 217697,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ナンキョクダルマハダカ",
     "preferred_en_name": "Antarctic lanternfish",
+    "display_name_ja": "ナンキョクダルマハダカ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2502,7 +2604,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Electrona-antarctica.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Antarctic lanternfish"
+    "display_name": "ナンキョクダルマハダカ"
   },
   {
     "source_catalog_id": "I089",
@@ -2513,8 +2615,10 @@
     "taxon_authority_id": 124759,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ユメナマコ",
     "preferred_en_name": "Swimming sea cucumber",
+    "display_name_ja": "ユメナマコ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Echinodermata",
@@ -2551,7 +2655,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=124759&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Swimming sea cucumber"
+    "display_name": "ユメナマコ"
   },
   {
     "source_catalog_id": "I017",
@@ -2564,6 +2668,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Siphonophore",
+    "display_name_ja": "リシャールクダクラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -2600,7 +2706,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135487&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Siphonophore"
+    "display_name": "リシャールクダクラゲ"
   },
   {
     "source_catalog_id": "I088",
@@ -2613,6 +2719,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Cold-seep tube worm",
+    "display_name_ja": "エスカルピアハオリムシ",
+    "ja_name_status": "localized",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Annelida",
@@ -2649,7 +2757,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265923&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Cold-seep tube worm"
+    "display_name": "エスカルピアハオリムシ"
   },
   {
     "source_catalog_id": "I068",
@@ -2662,6 +2770,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea crab",
+    "display_name_ja": "アビシスヒメガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -2698,7 +2808,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=209493&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea crab"
+    "display_name": "アビシスヒメガニ"
   },
   {
     "source_catalog_id": "F049",
@@ -2711,6 +2821,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Dwarf lantern shark",
+    "display_name_ja": "こびとヒカリザメ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2747,7 +2859,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Etmopterus-perryi.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Dwarf lantern shark"
+    "display_name": "こびとヒカリザメ"
   },
   {
     "source_catalog_id": "F048",
@@ -2760,6 +2872,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Velvet belly",
+    "display_name_ja": "腹光カラスザメ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2796,7 +2910,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Etmopterus-spinax.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Velvet belly"
+    "display_name": "腹光カラスザメ"
   },
   {
     "source_catalog_id": "I092",
@@ -2807,8 +2921,10 @@
     "taxon_authority_id": 171897,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "カイロウドウケツ",
     "preferred_en_name": "Venus flower basket",
+    "display_name_ja": "カイロウドウケツ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Porifera",
@@ -2845,7 +2961,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=171897&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Venus flower basket"
+    "display_name": "カイロウドウケツ"
   },
   {
     "source_catalog_id": "F001",
@@ -2858,6 +2974,8 @@
     "synonyms": [],
     "preferred_ja_name": "フクロウナギ",
     "preferred_en_name": "Pelican eel",
+    "display_name_ja": "フクロウナギ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2907,6 +3025,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Balbo sabretooth",
+    "display_name_ja": "サーベルキバウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -2943,7 +3063,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Evermannella-balbo.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Balbo sabretooth"
+    "display_name": "サーベルキバウオ"
   },
   {
     "source_catalog_id": "I029",
@@ -2954,8 +3074,10 @@
     "taxon_authority_id": 341807,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "キタノスカシイカ",
     "preferred_en_name": "Cranchiidae squid",
+    "display_name_ja": "キタノスカシイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -2992,7 +3114,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=341807&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Cranchiidae squid"
+    "display_name": "キタノスカシイカ"
   },
   {
     "source_catalog_id": "I077",
@@ -3005,6 +3127,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea shrimp",
+    "display_name_ja": "ジェナダス深海エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -3041,7 +3165,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107098&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea shrimp"
+    "display_name": "ジェナダス深海エビ"
   },
   {
     "source_catalog_id": "I059",
@@ -3054,6 +3178,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Three-spined crab",
+    "display_name_ja": "ミツトゲヘリガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -3090,7 +3216,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107374&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Three-spined crab"
+    "display_name": "ミツトゲヘリガニ"
   },
   {
     "source_catalog_id": "I030",
@@ -3101,8 +3227,10 @@
     "taxon_authority_id": 341859,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "テカギイカ",
     "preferred_en_name": "Clawed armhook squid",
+    "display_name_ja": "テカギイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3139,7 +3267,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=341859&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Clawed armhook squid"
+    "display_name": "テカギイカ"
   },
   {
     "source_catalog_id": "I052",
@@ -3152,6 +3280,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Antarctic warty octopus",
+    "display_name_ja": "南極いぼダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3188,7 +3318,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=325322&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Antarctic warty octopus"
+    "display_name": "南極いぼダコ"
   },
   {
     "source_catalog_id": "I037",
@@ -3201,6 +3331,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Pacific warty octopus",
+    "display_name_ja": "北太平洋いぼダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3237,7 +3369,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=342222&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Pacific warty octopus"
+    "display_name": "北太平洋いぼダコ"
   },
   {
     "source_catalog_id": "I038",
@@ -3250,6 +3382,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Warty octopus",
+    "display_name_ja": "いぼ肌ダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3286,7 +3420,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=157019&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Warty octopus"
+    "display_name": "いぼ肌ダコ"
   },
   {
     "source_catalog_id": "I039",
@@ -3299,6 +3433,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Dumbo octopus",
+    "display_name_ja": "耳ひれダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3335,7 +3471,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=342082&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Dumbo octopus"
+    "display_name": "耳ひれダコ"
   },
   {
     "source_catalog_id": "I041",
@@ -3348,6 +3484,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Dumbo octopus",
+    "display_name_ja": "探海耳ひれダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3384,7 +3522,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=153084&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Dumbo octopus"
+    "display_name": "探海耳ひれダコ"
   },
   {
     "source_catalog_id": "I040",
@@ -3397,6 +3535,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Emperor dumbo octopus",
+    "display_name_ja": "皇帝耳ひれダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3433,7 +3573,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1507664&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Emperor dumbo octopus"
+    "display_name": "皇帝耳ひれダコ"
   },
   {
     "source_catalog_id": "I008",
@@ -3446,6 +3586,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Maas's jelly",
+    "display_name_ja": "マーシ光輪クラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -3482,7 +3624,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=117622&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Maas's jelly"
+    "display_name": "マーシ光輪クラゲ"
   },
   {
     "source_catalog_id": "F047",
@@ -3493,8 +3635,10 @@
     "taxon_authority_id": 105829,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ヨミノツカイ",
     "preferred_en_name": "Pacific longnose chimaera",
+    "display_name_ja": "ヨミノツカイ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -3531,7 +3675,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Harriotta-raleighana.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Pacific longnose chimaera"
+    "display_name": "ヨミノツカイ"
   },
   {
     "source_catalog_id": "F056",
@@ -3542,8 +3686,10 @@
     "taxon_authority_id": 105833,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "カグラザメ",
     "preferred_en_name": "Bluntnose sixgill shark",
+    "display_name_ja": "カグラザメ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -3580,7 +3726,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Hexanchus-griseus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Bluntnose sixgill shark"
+    "display_name": "カグラザメ"
   },
   {
     "source_catalog_id": "F042",
@@ -3591,8 +3737,10 @@
     "taxon_authority_id": 126545,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "チョウチンアンコウ",
     "preferred_en_name": "Atlantic footballfish",
+    "display_name_ja": "チョウチンアンコウ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -3629,7 +3777,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Himantolophus-groenlandicus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Atlantic footballfish"
+    "display_name": "チョウチンアンコウ"
   },
   {
     "source_catalog_id": "I026",
@@ -3640,8 +3788,10 @@
     "taxon_authority_id": 341868,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "カリフォルニアシラタマイカ",
     "preferred_en_name": "Strawberry squid",
+    "display_name_ja": "カリフォルニアシラタマイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3678,7 +3828,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=341868&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Strawberry squid"
+    "display_name": "カリフォルニアシラタマイカ"
   },
   {
     "source_catalog_id": "I025",
@@ -3689,8 +3839,10 @@
     "taxon_authority_id": 181381,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "アメリカゴマフイカ",
     "preferred_en_name": "Reverse jewel squid",
+    "display_name_ja": "アメリカゴマフイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -3727,7 +3879,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=181381&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Reverse jewel squid"
+    "display_name": "アメリカゴマフイカ"
   },
   {
     "source_catalog_id": "I067",
@@ -3740,6 +3892,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Carrier crab",
+    "display_name_ja": "カイカムリガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -3776,7 +3930,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107262&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Carrier crab"
+    "display_name": "カイカムリガニ"
   },
   {
     "source_catalog_id": "F037",
@@ -3787,8 +3941,10 @@
     "taxon_authority_id": 126402,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オレンジラフィー",
     "preferred_en_name": "Orange roughy",
+    "display_name_ja": "オレンジラフィー",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -3825,7 +3981,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Hoplostethus-atlanticus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Orange roughy"
+    "display_name": "オレンジラフィー"
   },
   {
     "source_catalog_id": "F046",
@@ -3838,6 +3994,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Spotted ratfish",
+    "display_name_ja": "斑点ネズミギンザメ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -3874,7 +4032,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Hydrolagus-colliei.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Spotted ratfish"
+    "display_name": "斑点ネズミギンザメ"
   },
   {
     "source_catalog_id": "I076",
@@ -3887,6 +4045,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea shrimp",
+    "display_name_ja": "ヒメノペナエウスエビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -3923,7 +4083,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107117&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea shrimp"
+    "display_name": "ヒメノペナエウスエビ"
   },
   {
     "source_catalog_id": "F016",
@@ -3936,6 +4096,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Black dragonfish",
+    "display_name_ja": "クロリュウウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -3972,7 +4134,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Idiacanthus-atlanticus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Black dragonfish"
+    "display_name": "クロリュウウオ"
   },
   {
     "source_catalog_id": "I051",
@@ -3985,6 +4147,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Dumbo octopus",
+    "display_name_ja": "丸耳ダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -4021,7 +4185,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1813559&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Dumbo octopus"
+    "display_name": "丸耳ダコ"
   },
   {
     "source_catalog_id": "I049",
@@ -4032,8 +4196,10 @@
     "taxon_authority_id": 138849,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ナツメダコ",
     "preferred_en_name": "Bolloid octopus",
+    "display_name_ja": "ナツメダコ",
+    "ja_name_status": "established",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -4070,7 +4236,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=138849&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Bolloid octopus"
+    "display_name": "ナツメダコ"
   },
   {
     "source_catalog_id": "I033",
@@ -4081,8 +4247,10 @@
     "taxon_authority_id": 879785,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オナガイカ",
     "preferred_en_name": "Joubin's squid",
+    "display_name_ja": "オナガイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -4119,7 +4287,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=879785&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Joubin's squid"
+    "display_name": "オナガイカ"
   },
   {
     "source_catalog_id": "I064",
@@ -4132,6 +4300,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Yeti crab",
+    "display_name_ja": "イエティケブカガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -4168,7 +4338,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=249751&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Yeti crab"
+    "display_name": "イエティケブカガニ"
   },
   {
     "source_catalog_id": "I063",
@@ -4181,6 +4351,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Hoff crab",
+    "display_name_ja": "タイラーケブカガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -4217,7 +4389,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=850310&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Hoff crab"
+    "display_name": "タイラーケブカガニ"
   },
   {
     "source_catalog_id": "I013",
@@ -4228,8 +4400,10 @@
     "taxon_authority_id": 265954,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ウサギクラゲ",
     "preferred_en_name": "Usagi comb jelly",
+    "display_name_ja": "ウサギクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Ctenophora",
@@ -4266,7 +4440,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265954&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Usagi comb jelly"
+    "display_name": "ウサギクラゲ"
   },
   {
     "source_catalog_id": "I087",
@@ -4277,8 +4451,10 @@
     "taxon_authority_id": 265815,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "メキシコハオリムシ",
     "preferred_en_name": "Cold-seep tube worm",
+    "display_name_ja": "メキシコハオリムシ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Annelida",
@@ -4315,7 +4491,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265815&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Cold-seep tube worm"
+    "display_name": "メキシコハオリムシ"
   },
   {
     "source_catalog_id": "F023",
@@ -4328,6 +4504,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Jewel lanternfish",
+    "display_name_ja": "宝石ヒカリウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4364,7 +4542,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Lampanyctus-crocodilus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Jewel lanternfish"
+    "display_name": "宝石ヒカリウオ"
   },
   {
     "source_catalog_id": "I011",
@@ -4375,8 +4553,10 @@
     "taxon_authority_id": 265955,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "アカカブトクラゲ",
     "preferred_en_name": "Bloody-belly comb jelly",
+    "display_name_ja": "アカカブトクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Ctenophora",
@@ -4413,7 +4593,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265955&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Bloody-belly comb jelly"
+    "display_name": "アカカブトクラゲ"
   },
   {
     "source_catalog_id": "F043",
@@ -4426,6 +4606,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Linophryne arborifera",
+    "display_name_ja": "枝飾りアンコウ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4462,7 +4644,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Linophryne-arborifera.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Linophryne arborifera"
+    "display_name": "枝飾りアンコウ"
   },
   {
     "source_catalog_id": "F026",
@@ -4473,8 +4655,10 @@
     "taxon_authority_id": 281482,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "デメニギス",
     "preferred_en_name": "Barreleye",
+    "display_name_ja": "デメニギス",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4511,7 +4695,7 @@
     "fact_source_url": "https://www.mbari.org/animal/barreleye-fish/",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Barreleye"
+    "display_name": "デメニギス"
   },
   {
     "source_catalog_id": "I061",
@@ -4524,6 +4708,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea spider crab",
+    "display_name_ja": "オオアシクモガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -4560,7 +4746,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=442169&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea spider crab"
+    "display_name": "オオアシクモガニ"
   },
   {
     "source_catalog_id": "F034",
@@ -4573,6 +4759,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Roughhead grenadier",
+    "display_name_ja": "ざら頭ネズミウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4609,7 +4797,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Macrourus-berglax.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Roughhead grenadier"
+    "display_name": "ざら頭ネズミウオ"
   },
   {
     "source_catalog_id": "I023",
@@ -4622,6 +4810,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Atlantic bigfin squid",
+    "display_name_ja": "大ひれイカ",
+    "ja_name_status": "localized",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -4658,7 +4848,7 @@
     "fact_source_url": "https://doi.org/10.2988/0006-324x(2006)119%5B365%3Atsfmmc%5D2.0.co%3B2",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Atlantic bigfin squid"
+    "display_name": "大ひれイカ"
   },
   {
     "source_catalog_id": "F015",
@@ -4669,8 +4859,10 @@
     "taxon_authority_id": 127358,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オオクチホシエソ",
     "preferred_en_name": "Stoplight loosejaw",
+    "display_name_ja": "オオクチホシエソ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4707,7 +4899,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Malacosteus-niger.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Stoplight loosejaw"
+    "display_name": "オオクチホシエソ"
   },
   {
     "source_catalog_id": "I016",
@@ -4718,8 +4910,10 @@
     "taxon_authority_id": 135494,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ヒノオビクラゲ",
     "preferred_en_name": "String jelly",
+    "display_name_ja": "ヒノオビクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -4756,7 +4950,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135494&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "String jelly"
+    "display_name": "ヒノオビクラゲ"
   },
   {
     "source_catalog_id": "I034",
@@ -4767,8 +4961,10 @@
     "taxon_authority_id": 181383,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ホノオムチイカ",
     "preferred_en_name": "Fire whip-lash squid",
+    "display_name_ja": "ホノオムチイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -4805,7 +5001,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=181383&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Fire whip-lash squid"
+    "display_name": "ホノオムチイカ"
   },
   {
     "source_catalog_id": "F022",
@@ -4816,8 +5012,10 @@
     "taxon_authority_id": 127312,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "キュウリエソ",
     "preferred_en_name": "Silvery lightfish",
+    "display_name_ja": "キュウリエソ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4854,7 +5052,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Maurolicus-muelleri.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Silvery lightfish"
+    "display_name": "キュウリエソ"
   },
   {
     "source_catalog_id": "F041",
@@ -4865,8 +5063,10 @@
     "taxon_authority_id": 126556,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ペリカンアンコウ",
     "preferred_en_name": "Humpback anglerfish",
+    "display_name_ja": "ペリカンアンコウ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -4903,7 +5103,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Melanocetus-johnsonii.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Humpback anglerfish"
+    "display_name": "ペリカンアンコウ"
   },
   {
     "source_catalog_id": "I022",
@@ -4914,8 +5114,10 @@
     "taxon_authority_id": 325299,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ダイオウホウズキイカ",
     "preferred_en_name": "Colossal squid",
+    "display_name_ja": "ダイオウホウズキイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -4952,7 +5154,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=325299&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Colossal squid"
+    "display_name": "ダイオウホウズキイカ"
   },
   {
     "source_catalog_id": "I071",
@@ -4965,6 +5167,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Vent shrimp",
+    "display_name_ja": "ミロカリス熱水エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5001,7 +5205,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107541&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Vent shrimp"
+    "display_name": "ミロカリス熱水エビ"
   },
   {
     "source_catalog_id": "F054",
@@ -5014,6 +5218,8 @@
     "synonyms": [],
     "preferred_ja_name": "ミツクリザメ",
     "preferred_en_name": "Goblin shark",
+    "display_name_ja": "ミツクリザメ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5063,6 +5269,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Common mora",
+    "display_name_ja": "灰色モラウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5099,7 +5307,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Mora-moro.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Common mora"
+    "display_name": "灰色モラウオ"
   },
   {
     "source_catalog_id": "I048",
@@ -5112,6 +5320,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Smoothskin octopus",
+    "display_name_ja": "なめ肌ダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -5148,7 +5358,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1043781&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Smoothskin octopus"
+    "display_name": "なめ肌ダコ"
   },
   {
     "source_catalog_id": "I047",
@@ -5161,6 +5371,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Robust octopus",
+    "display_name_ja": "がっしりダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -5197,7 +5409,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=527163&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Robust octopus"
+    "display_name": "がっしりダコ"
   },
   {
     "source_catalog_id": "F024",
@@ -5210,6 +5422,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Spotted lanternfish",
+    "display_name_ja": "斑点ヒカリウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5246,7 +5460,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Myctophum-punctatum.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Spotted lanternfish"
+    "display_name": "斑点ヒカリウオ"
   },
   {
     "source_catalog_id": "I078",
@@ -5259,6 +5473,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Saber shrimp",
+    "display_name_ja": "ヤリヒゲエビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5295,7 +5511,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107573&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Saber shrimp"
+    "display_name": "ヤリヒゲエビ"
   },
   {
     "source_catalog_id": "I084",
@@ -5306,8 +5522,10 @@
     "taxon_authority_id": 514311,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "クシノハイトアシエビ",
     "preferred_en_name": "Slender shrimp",
+    "display_name_ja": "クシノハイトアシエビ",
+    "ja_name_status": "established",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5344,7 +5562,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=514311&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Slender shrimp"
+    "display_name": "クシノハイトアシエビ"
   },
   {
     "source_catalog_id": "F003",
@@ -5355,8 +5573,10 @@
     "taxon_authority_id": 126306,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "シギウナギ",
     "preferred_en_name": "Slender snipe eel",
+    "display_name_ja": "シギウナギ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5393,7 +5613,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Nemichthys-scolopaceus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Slender snipe eel"
+    "display_name": "シギウナギ"
   },
   {
     "source_catalog_id": "I053",
@@ -5406,6 +5626,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Pacific king crab",
+    "display_name_ja": "太平洋イバラガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5442,7 +5664,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=378126&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Pacific king crab"
+    "display_name": "太平洋イバラガニ"
   },
   {
     "source_catalog_id": "I054",
@@ -5455,6 +5677,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea king crab",
+    "display_name_ja": "グリマルディイバラガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5491,7 +5715,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107206&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea king crab"
+    "display_name": "グリマルディイバラガニ"
   },
   {
     "source_catalog_id": "F006",
@@ -5502,8 +5726,10 @@
     "taxon_authority_id": 126643,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "クロソコギス",
     "preferred_en_name": "Snubnosed spiny eel",
+    "display_name_ja": "クロソコギス",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5540,7 +5766,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Notacanthus-chemnitzii.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Snubnosed spiny eel"
+    "display_name": "クロソコギス"
   },
   {
     "source_catalog_id": "I074",
@@ -5553,6 +5779,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Deep-sea shrimp",
+    "display_name_ja": "コブツノエビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5589,7 +5817,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=212899&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea shrimp"
+    "display_name": "コブツノエビ"
   },
   {
     "source_catalog_id": "I035",
@@ -5600,8 +5828,10 @@
     "taxon_authority_id": 342057,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "キタノヤツデイカ",
     "preferred_en_name": "Octopus squid",
+    "display_name_ja": "キタノヤツデイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -5638,7 +5868,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=342057&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Octopus squid"
+    "display_name": "キタノヤツデイカ"
   },
   {
     "source_catalog_id": "F009",
@@ -5649,8 +5879,10 @@
     "taxon_authority_id": 272087,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "キバハダカ",
     "preferred_en_name": "Omosudid",
+    "display_name_ja": "キバハダカ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5687,7 +5919,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Omosudis-lowii.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Omosudid"
+    "display_name": "キバハダカ"
   },
   {
     "source_catalog_id": "F028",
@@ -5700,6 +5932,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Barrel-eye",
+    "display_name_ja": "樽目ウオ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -5736,7 +5970,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Opisthoproctus-soleatus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Barrel-eye"
+    "display_name": "樽目ウオ"
   },
   {
     "source_catalog_id": "I044",
@@ -5749,6 +5983,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Flapjack octopus",
+    "display_name_ja": "ひらひら円盤ダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -5785,7 +6021,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=140652&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Flapjack octopus"
+    "display_name": "ひらひら円盤ダコ"
   },
   {
     "source_catalog_id": "I073",
@@ -5796,8 +6032,10 @@
     "taxon_authority_id": 107602,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オキヒオドシエビ",
     "preferred_en_name": "Deep-sea shrimp",
+    "display_name_ja": "オキヒオドシエビ",
+    "ja_name_status": "established",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5834,7 +6072,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107602&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Deep-sea shrimp"
+    "display_name": "オキヒオドシエビ"
   },
   {
     "source_catalog_id": "I056",
@@ -5847,6 +6085,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "King crab",
+    "display_name_ja": "ビルスタインイバラガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5883,7 +6123,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=246545&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "King crab"
+    "display_name": "ビルスタインイバラガニ"
   },
   {
     "source_catalog_id": "I055",
@@ -5894,8 +6134,10 @@
     "taxon_authority_id": 378131,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "エゾイバラガニ",
     "preferred_en_name": "Spiny king crab",
+    "display_name_ja": "エゾイバラガニ",
+    "ja_name_status": "established",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5932,7 +6174,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=378131&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Spiny king crab"
+    "display_name": "エゾイバラガニ"
   },
   {
     "source_catalog_id": "I083",
@@ -5945,6 +6187,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Glass shrimp",
+    "display_name_ja": "パシファエガラスエビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -5981,7 +6225,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107676&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Glass shrimp"
+    "display_name": "パシファエガラスエビ"
   },
   {
     "source_catalog_id": "I003",
@@ -5992,8 +6236,10 @@
     "taxon_authority_id": 135294,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "クロカムリクラゲ",
     "preferred_en_name": "Helmet jelly",
+    "display_name_ja": "クロカムリクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -6030,7 +6276,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135294&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Helmet jelly"
+    "display_name": "クロカムリクラゲ"
   },
   {
     "source_catalog_id": "I075",
@@ -6043,6 +6289,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Golden shrimp",
+    "display_name_ja": "コガネナガエビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -6079,7 +6327,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107661&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Golden shrimp"
+    "display_name": "コガネナガエビ"
   },
   {
     "source_catalog_id": "I019",
@@ -6090,8 +6338,10 @@
     "taxon_authority_id": 135466,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "マヨイアイオイクラゲ",
     "preferred_en_name": "Giant siphonophore",
+    "display_name_ja": "マヨイアイオイクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -6128,7 +6378,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135466&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Giant siphonophore"
+    "display_name": "マヨイアイオイクラゲ"
   },
   {
     "source_catalog_id": "F055",
@@ -6139,8 +6389,10 @@
     "taxon_authority_id": 105805,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "チヒロザメ",
     "preferred_en_name": "False catshark",
+    "display_name_ja": "チヒロザメ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6177,7 +6429,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Pseudotriakis-microdon.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "False catshark"
+    "display_name": "チヒロザメ"
   },
   {
     "source_catalog_id": "F040",
@@ -6188,8 +6440,10 @@
     "taxon_authority_id": 274678,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ニュウドウカジカ",
     "preferred_en_name": "Blob sculpin",
+    "display_name_ja": "ニュウドウカジカ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6226,7 +6480,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Psychrolutes-phrictus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Blob sculpin"
+    "display_name": "ニュウドウカジカ"
   },
   {
     "source_catalog_id": "I090",
@@ -6237,8 +6491,10 @@
     "taxon_authority_id": 124778,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "エボシナマコ",
     "preferred_en_name": "Sea cucumber",
+    "display_name_ja": "エボシナマコ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Echinodermata",
@@ -6275,7 +6531,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=124778&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Sea cucumber"
+    "display_name": "エボシナマコ"
   },
   {
     "source_catalog_id": "I086",
@@ -6286,8 +6542,10 @@
     "taxon_authority_id": 266010,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ガラパゴスハオリムシ",
     "preferred_en_name": "Giant tube worm",
+    "display_name_ja": "ガラパゴスハオリムシ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Annelida",
@@ -6324,7 +6582,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=266010&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Giant tube worm"
+    "display_name": "ガラパゴスハオリムシ"
   },
   {
     "source_catalog_id": "I080",
@@ -6337,6 +6595,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Vent shrimp",
+    "display_name_ja": "チェイス熱水エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -6373,7 +6633,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=586785&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Vent shrimp"
+    "display_name": "チェイス熱水エビ"
   },
   {
     "source_catalog_id": "I069",
@@ -6384,8 +6644,10 @@
     "taxon_authority_id": 107542,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ツノナシオハラエビ",
     "preferred_en_name": "Vent shrimp",
+    "display_name_ja": "ツノナシオハラエビ",
+    "ja_name_status": "established",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -6422,7 +6684,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107542&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Vent shrimp"
+    "display_name": "ツノナシオハラエビ"
   },
   {
     "source_catalog_id": "I082",
@@ -6435,6 +6697,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Robust deep-sea shrimp",
+    "display_name_ja": "ロブストセルギア深海エビ",
+    "ja_name_status": "localized",
     "category": "shrimp",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -6471,7 +6735,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=1056517&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Robust deep-sea shrimp"
+    "display_name": "ロブストセルギア深海エビ"
   },
   {
     "source_catalog_id": "F030",
@@ -6482,8 +6746,10 @@
     "taxon_authority_id": 126412,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "アカチョッキクジラウオ",
     "preferred_en_name": "Redmouth whalefish",
+    "display_name_ja": "アカチョッキクジラウオ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6520,7 +6786,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Rondeletia-loricata",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Redmouth whalefish"
+    "display_name": "アカチョッキクジラウオ"
   },
   {
     "source_catalog_id": "I091",
@@ -6531,8 +6797,10 @@
     "taxon_authority_id": 148773,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "センジュナマコ",
     "preferred_en_name": "Sea pig",
+    "display_name_ja": "センジュナマコ",
+    "ja_name_status": "established",
     "category": "other_invertebrate",
     "rank": "Species",
     "phylum": "Echinodermata",
@@ -6569,7 +6837,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=148773&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Sea pig"
+    "display_name": "センジュナマコ"
   },
   {
     "source_catalog_id": "I066",
@@ -6582,6 +6850,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Vent crab",
+    "display_name_ja": "大西洋熱水ガニ",
+    "ja_name_status": "localized",
     "category": "crab",
     "rank": "Species",
     "phylum": "Arthropoda",
@@ -6618,7 +6888,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=107266&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Vent crab"
+    "display_name": "大西洋熱水ガニ"
   },
   {
     "source_catalog_id": "F002",
@@ -6631,6 +6901,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Stout sawpalate",
+    "display_name_ja": "ノコギリ口ウナギ",
+    "ja_name_status": "localized",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6667,7 +6939,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Serrivomer-beanii.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Stout sawpalate"
+    "display_name": "ノコギリ口ウナギ"
   },
   {
     "source_catalog_id": "F018",
@@ -6678,8 +6950,10 @@
     "taxon_authority_id": 221512,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "オオヨコエソ",
     "preferred_en_name": "Elongated bristlemouth fish",
+    "display_name_ja": "オオヨコエソ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6716,7 +6990,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Sigmops-elongatus.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Elongated bristlemouth fish"
+    "display_name": "オオヨコエソ"
   },
   {
     "source_catalog_id": "F005",
@@ -6727,8 +7001,10 @@
     "taxon_authority_id": 126327,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "コンゴウアナゴ",
     "preferred_en_name": "Snubnosed eel",
+    "display_name_ja": "コンゴウアナゴ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6765,7 +7041,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Simenchelys-parasitica.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Snubnosed eel"
+    "display_name": "コンゴウアナゴ"
   },
   {
     "source_catalog_id": "F052",
@@ -6778,6 +7054,8 @@
     "synonyms": [],
     "preferred_ja_name": "ニシオンデンザメ",
     "preferred_en_name": "Greenland shark",
+    "display_name_ja": "ニシオンデンザメ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6827,6 +7105,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Stauroteuthis octopus",
+    "display_name_ja": "星明かりダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -6863,7 +7143,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=153122&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Stauroteuthis octopus"
+    "display_name": "星明かりダコ"
   },
   {
     "source_catalog_id": "I004",
@@ -6874,8 +7154,10 @@
     "taxon_authority_id": 135311,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ダイオウクラゲ",
     "preferred_en_name": "Giant phantom jelly",
+    "display_name_ja": "ダイオウクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -6912,7 +7194,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=135311&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Giant phantom jelly"
+    "display_name": "ダイオウクラゲ"
   },
   {
     "source_catalog_id": "F004",
@@ -6923,8 +7205,10 @@
     "taxon_authority_id": 126328,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "イラコアナゴ",
     "preferred_en_name": "Kaup's arrowtooth eel",
+    "display_name_ja": "イラコアナゴ",
+    "ja_name_status": "established",
     "category": "fish",
     "rank": "Species",
     "phylum": "Chordata",
@@ -6961,7 +7245,7 @@
     "fact_source_url": "https://www.fishbase.se/summary/Synaphobranchus-kaupii.html",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Kaup's arrowtooth eel"
+    "display_name": "イラコアナゴ"
   },
   {
     "source_catalog_id": "I027",
@@ -6972,8 +7256,10 @@
     "taxon_authority_id": 140609,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ヒロビレイカ",
     "preferred_en_name": "Dana octopus squid",
+    "display_name_ja": "ヒロビレイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -7010,7 +7296,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=140609&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Dana octopus squid"
+    "display_name": "ヒロビレイカ"
   },
   {
     "source_catalog_id": "I028",
@@ -7021,8 +7307,10 @@
     "taxon_authority_id": 139428,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "クジャクイカ",
     "preferred_en_name": "Peacock squid",
+    "display_name_ja": "クジャクイカ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -7059,7 +7347,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=139428&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Peacock squid"
+    "display_name": "クジャクイカ"
   },
   {
     "source_catalog_id": "I012",
@@ -7072,6 +7360,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Thalassocalyce comb jelly",
+    "display_name_ja": "タラッサカリュケクシクラゲ",
+    "ja_name_status": "localized",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Ctenophora",
@@ -7108,7 +7398,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=265827&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Thalassocalyce comb jelly"
+    "display_name": "タラッサカリュケクシクラゲ"
   },
   {
     "source_catalog_id": "I005",
@@ -7119,8 +7409,10 @@
     "taxon_authority_id": 291224,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "ユビアシクラゲ",
     "preferred_en_name": "Big red jelly",
+    "display_name_ja": "ユビアシクラゲ",
+    "ja_name_status": "established",
     "category": "gelatinous_plankton",
     "rank": "Species",
     "phylum": "Cnidaria",
@@ -7157,7 +7449,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=291224&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Big red jelly"
+    "display_name": "ユビアシクラゲ"
   },
   {
     "source_catalog_id": "I024",
@@ -7170,6 +7462,8 @@
     "synonyms": [],
     "preferred_ja_name": "コウモリダコ",
     "preferred_en_name": "Vampire squid",
+    "display_name_ja": "コウモリダコ",
+    "ja_name_status": "established",
     "category": "squid",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -7217,8 +7511,10 @@
     "taxon_authority_id": 141962,
     "taxon_status": "accepted",
     "synonyms": [],
-    "preferred_ja_name": null,
+    "preferred_ja_name": "スカシダコ",
     "preferred_en_name": "Glass octopus",
+    "display_name_ja": "スカシダコ",
+    "ja_name_status": "established",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -7255,7 +7551,7 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=141962&size=500",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Glass octopus"
+    "display_name": "スカシダコ"
   },
   {
     "source_catalog_id": "I046",
@@ -7268,6 +7564,8 @@
     "synonyms": [],
     "preferred_ja_name": null,
     "preferred_en_name": "Hydrothermal vent octopus",
+    "display_name_ja": "熱水口ダコ",
+    "ja_name_status": "localized",
     "category": "octopus",
     "rank": "Species",
     "phylum": "Mollusca",
@@ -7304,6 +7602,6 @@
     "fact_source_url": "https://api.obis.org/v3/occurrence?taxonid=342417&size=1000",
     "last_verified_at": "2026-08-12",
     "research_status": "verified",
-    "display_name": "Hydrothermal vent octopus"
+    "display_name": "熱水口ダコ"
   }
 ]

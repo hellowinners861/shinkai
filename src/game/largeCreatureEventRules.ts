@@ -56,7 +56,7 @@ export const LARGE_CREATURE_EVENT_CANDIDATES: readonly LargeCreatureEventCandida
     Object.freeze({
       sourceCatalogId: 'I022' as const,
       acceptedScientificName: 'Mesonychoteuthis hamiltoni',
-      displayName: 'Colossal squid',
+      displayName: 'ダイオウホウズキイカ',
       spawnDepthMinM: 200,
       spawnDepthMaxM: 3_111,
       depthSourceUrl:
