@@ -111,6 +111,17 @@ import {
   updateSubmarineView as updateSubmarineRendererView,
   type SubmarineView,
 } from '../game/submarineRenderer';
+import {
+  createSpeciesScanGaugeView,
+  destroySpeciesScanGaugeView,
+  isSpeciesScanGaugeCompletionHoldElapsed,
+  updateSpeciesScanGaugeView,
+  type SpeciesScanGaugeView,
+} from '../game/speciesScanGauge';
+import {
+  isScanRailCompletionHoldActive,
+  selectScanRailPresentation,
+} from '../game/scanPresentationRules';
 import { VirtualJoystick } from '../input/VirtualJoystick';
 import type { MobileLifecycleStatus } from '../platform/mobileLifecycle';
 import { announce, prefersReducedMotion } from '../platform/preferences';
@@ -158,6 +169,7 @@ interface EncounterObject {
 
 interface SpeciesObject {
   display: Phaser.GameObjects.Container;
+  scanGauge: SpeciesScanGaugeView;
   species: SpawnableSpecies;
   spawnAtSeconds: number;
   behaviorPlan: SpeciesBehaviorPlan;
@@ -169,16 +181,19 @@ interface SpeciesObject {
   globallyNew: boolean;
   illuminated: boolean;
   visualAlpha: number;
+  completionStartedAtSeconds: number | undefined;
 }
 
 interface LargeCreatureObject {
   display: Phaser.GameObjects.Container;
+  scanGauge: SpeciesScanGaugeView;
   species: SpawnableSpecies;
   radius: number;
   scanId: string;
   ageSeconds: number;
   illuminated: boolean;
   visualAlpha: number;
+  completionStartedAtSeconds: number | undefined;
 }
 
 interface ActiveScanStatus {
@@ -745,17 +760,21 @@ export class GameScene extends Phaser.Scene {
     display.setScale(2.8);
     display.setDepth(GAME_OBJECT_DEPTH.largeCreature);
     display.setAlpha(0.34);
+    const scanGauge = createSpeciesScanGaugeView(this, 'large');
     this.largeCreature = {
       display,
+      scanGauge,
       species,
       radius: SPECIES_COLLISION_RADIUS * 2.8,
       scanId: 'large-creature-' + candidate.sourceCatalogId,
       ageSeconds: this.largeCreatureState.eventElapsedSeconds,
       illuminated: false,
       visualAlpha: 1,
+      completionStartedAtSeconds: undefined,
     };
     display.x = -this.largeCreature.radius;
     display.y = LARGE_CREATURE_EVENT_PATH_Y;
+    this.updateLargeCreatureScanGauge();
     this.drawLargeCreaturePath();
     void elapsedSeconds;
   }
@@ -783,11 +802,39 @@ export class GameScene extends Phaser.Scene {
       (GAME_WIDTH + creature.radius * 2) * progress;
     creature.display.y = LARGE_CREATURE_EVENT_PATH_Y;
     creature.display.setAlpha(creature.illuminated ? 0.96 : 0.34);
+    this.updateLargeCreatureScanGauge();
 
     if (this.largeCreatureState.status === 'completed' &&
       creature.ageSeconds >= LARGE_CREATURE_EVENT_DURATION_SECONDS) {
       this.destroyLargeCreatureObjects();
     }
+  }
+
+  private updateLargeCreatureScanGauge(): void {
+    const creature = this.largeCreature;
+    if (!creature) {
+      return;
+    }
+
+    const elapsedSeconds = this.diveProgression.elapsedSeconds;
+    const completed = this.largeCreatureState.status === 'completed';
+    if (completed && creature.completionStartedAtSeconds !== undefined &&
+      isSpeciesScanGaugeCompletionHoldElapsed(
+        creature.completionStartedAtSeconds,
+        elapsedSeconds,
+      )) {
+      creature.scanGauge.root.setVisible(false);
+      return;
+    }
+
+    updateSpeciesScanGaugeView(creature.scanGauge, {
+      centerX: creature.display.x,
+      centerY: creature.display.y,
+      progressSeconds: this.largeCreatureState.identificationSeconds,
+      requiredSeconds: LARGE_CREATURE_EVENT_REQUIRED_SECONDS,
+      illuminated: creature.illuminated,
+      completed,
+    });
   }
 
   private resolveLargeCreatureCollision(): void {
@@ -899,6 +946,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private destroyLargeCreatureObjects(): void {
+    destroySpeciesScanGaugeView(this.largeCreature?.scanGauge);
     this.largeCreature?.display.destroy();
     this.largeCreature = undefined;
     this.largeCreaturePathGraphics?.clear();
@@ -1107,8 +1155,10 @@ export class GameScene extends Phaser.Scene {
       species,
       behaviorPlan.axis === 'horizontal' ? behaviorPlan.direction : 1,
     );
+    const scanGauge = createSpeciesScanGaugeView(this, 'normal');
     const encounter: SpeciesObject = {
       display,
+      scanGauge,
       species,
       spawnAtSeconds: request.atSeconds,
       behaviorPlan,
@@ -1120,6 +1170,7 @@ export class GameScene extends Phaser.Scene {
       globallyNew: false,
       illuminated: false,
       visualAlpha: 1,
+      completionStartedAtSeconds: undefined,
     };
     this.speciesSequence += 1;
     this.speciesEncounters.push(encounter);
@@ -1158,6 +1209,16 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
 
+      if (encounter.completed &&
+        encounter.completionStartedAtSeconds !== undefined &&
+        isSpeciesScanGaugeCompletionHoldElapsed(
+          encounter.completionStartedAtSeconds,
+          elapsedSeconds,
+        )) {
+        this.removeSpeciesAt(index);
+        continue;
+      }
+
       const ageSeconds = Math.max(
         0,
         elapsedSeconds - encounter.spawnAtSeconds,
@@ -1174,14 +1235,27 @@ export class GameScene extends Phaser.Scene {
       );
       encounter.visualAlpha = visualState.alpha;
       encounter.display.setScale(visualState.scale);
-      encounter.display.setAlpha(encounter.illuminated
+      encounter.display.setAlpha(encounter.illuminated || encounter.completed
         ? Math.min(0.96, visualState.alpha)
         : Phaser.Math.Clamp(visualState.alpha * 0.64, 0.48, 0.68));
+      this.updateSpeciesScanGauge(encounter);
 
-      if (hasSpeciesBehaviorExited(encounter.behaviorPlan, position)) {
+      if (!encounter.completed &&
+        hasSpeciesBehaviorExited(encounter.behaviorPlan, position)) {
         this.removeSpeciesAt(index);
       }
     }
+  }
+
+  private updateSpeciesScanGauge(encounter: SpeciesObject): void {
+    updateSpeciesScanGaugeView(encounter.scanGauge, {
+      centerX: encounter.display.x,
+      centerY: encounter.display.y,
+      progressSeconds: encounter.progressSeconds,
+      requiredSeconds: getScanRequiredSeconds(encounter.species.rarity),
+      illuminated: encounter.illuminated,
+      completed: encounter.completed,
+    });
   }
 
   private updateSpeciesScans(frameSeconds: number): void {
@@ -1194,6 +1268,7 @@ export class GameScene extends Phaser.Scene {
     const searchlightTargets: SearchlightTarget[] = [];
     for (const encounter of this.speciesEncounters) {
       encounter.illuminated = false;
+      this.updateSpeciesScanGauge(encounter);
       if (encounter.completed) {
         continue;
       }
@@ -1254,6 +1329,10 @@ export class GameScene extends Phaser.Scene {
       );
       encounter.progressSeconds = nextTarget.progressSeconds;
       encounter.completed = nextTarget.completed;
+      this.updateSpeciesScanGauge(encounter);
+      if (nextTarget.completed) {
+        encounter.completionStartedAtSeconds = this.diveProgression.elapsedSeconds;
+      }
       updatedTargets.set(encounter.scanId, nextTarget);
       if (nextTarget.completed) {
         completedNormalEncounters.push(encounter);
@@ -1297,13 +1376,8 @@ export class GameScene extends Phaser.Scene {
       }
 
       this.updateHud();
-      const index = this.speciesEncounters.indexOf(encounter);
-      if (index >= 0) {
-        this.removeSpeciesAt(index);
-      }
     }
 
-    let largeCreatureCompleted = false;
     if (this.largeCreature &&
       this.largeCreatureState.status === 'active') {
       const illuminated = selectedTargetId === this.largeCreature.scanId;
@@ -1315,7 +1389,8 @@ export class GameScene extends Phaser.Scene {
       );
       this.largeCreatureState = identification.state;
       if (identification.completedNow) {
-        largeCreatureCompleted = true;
+        this.largeCreature.completionStartedAtSeconds =
+          this.diveProgression.elapsedSeconds;
         const key = this.largeCreature.species.acceptedScientificName;
         const displayName = this.largeCreature.species.displayName;
         const globallyNew = !this.knownSpecies.has(key);
@@ -1342,19 +1417,7 @@ export class GameScene extends Phaser.Scene {
         this.persistSpeciesCollection(key);
         this.updateHud();
       }
-    }
-
-    if (largeCreatureCompleted ||
-      this.largeCreatureState.status !== 'active' ||
-      selectedTargetId === this.largeCreature?.scanId) {
-      if (this.largeCreatureState.status === 'active' &&
-        this.largeCreature &&
-        selectedTargetId === this.largeCreature.scanId) {
-        this.updateLargeCreatureScanPresentation();
-      } else {
-        this.clearActiveScanPresentation();
-      }
-      return;
+      this.updateLargeCreatureScanGauge();
     }
 
     const activeEncounter = selectedTargetId === undefined
@@ -1364,7 +1427,49 @@ export class GameScene extends Phaser.Scene {
     const activeTarget = activeEncounter === undefined
       ? undefined
       : updatedTargets.get(activeEncounter.scanId);
-    this.updateActiveScanPresentation(activeEncounter, activeTarget);
+    const normalCompletionHold = this.speciesEncounters.find((encounter) =>
+      encounter.completed &&
+      isScanRailCompletionHoldActive(
+        encounter.completionStartedAtSeconds,
+        this.diveProgression.elapsedSeconds,
+      ),
+    );
+    const largeCompletionHold = this.largeCreature !== undefined &&
+      isScanRailCompletionHoldActive(
+        this.largeCreature.completionStartedAtSeconds,
+        this.diveProgression.elapsedSeconds,
+      );
+    const railPresentation = selectScanRailPresentation({
+      normalTargetSelected: activeEncounter !== undefined &&
+        activeTarget !== undefined,
+      largeTargetSelected: this.largeCreature !== undefined &&
+        selectedTargetId === this.largeCreature.scanId,
+      largeStatus: this.largeCreatureState.status,
+      normalCompletionHold: normalCompletionHold !== undefined,
+      largeCompletionHold,
+    });
+
+    switch (railPresentation) {
+      case 'large-active':
+        this.updateLargeCreatureScanPresentation();
+        return;
+      case 'normal-active':
+        this.updateActiveScanPresentation(activeEncounter, activeTarget);
+        return;
+      case 'normal-completed':
+        if (normalCompletionHold) {
+          this.updateCompletedSpeciesScanPresentation(normalCompletionHold);
+        } else {
+          this.clearActiveScanPresentation();
+        }
+        return;
+      case 'large-completed':
+        this.updateLargeCreatureScanPresentation(true);
+        return;
+      case 'none':
+        this.clearActiveScanPresentation();
+        return;
+    }
   }
   private updateActiveScanPresentation(
     encounter: SpeciesObject | undefined,
@@ -1400,14 +1505,22 @@ export class GameScene extends Phaser.Scene {
     this.updateScanRail(undefined);
   }
 
-  private updateLargeCreatureScanPresentation(): void {
+  private updateLargeCreatureScanPresentation(
+    completedHold = false,
+  ): void {
+    const largeCreatureIsActive = this.largeCreatureState.status === 'active';
+    const largeCreatureIsCompletedHold = completedHold &&
+      this.largeCreatureState.status === 'completed';
     if (!this.largeCreature ||
-      this.largeCreatureState.status !== 'active') {
+      (!largeCreatureIsActive && !largeCreatureIsCompletedHold)) {
       this.clearActiveScanPresentation();
       return;
     }
 
     const requiredSeconds = LARGE_CREATURE_EVENT_REQUIRED_SECONDS;
+    const progressSeconds = largeCreatureIsCompletedHold
+      ? requiredSeconds
+      : this.largeCreatureState.identificationSeconds;
     this.activeScanStatus = {
       sourceCatalogId: this.largeCreature.species.sourceCatalogId,
       displayName: this.knownSpecies.has(
@@ -1415,11 +1528,34 @@ export class GameScene extends Phaser.Scene {
       )
         ? this.largeCreature.species.displayName
         : 'UNKNOWN / ' + this.largeCreature.species.category,
-      progressSeconds: this.largeCreatureState.identificationSeconds,
+      progressSeconds,
       requiredSeconds,
-      progressPercent: (
-        this.largeCreatureState.identificationSeconds / requiredSeconds
-      ) * 100,
+      progressPercent: (progressSeconds / requiredSeconds) * 100,
+    };
+    this.game.registry?.set('shinkai.activeScanStatus', this.activeScanStatus);
+    this.updateScanRail(this.activeScanStatus);
+  }
+
+  private updateCompletedSpeciesScanPresentation(
+    encounter: SpeciesObject,
+  ): void {
+    if (!this.player || !encounter.completed) {
+      this.clearActiveScanPresentation();
+      return;
+    }
+
+    const requiredSeconds = getScanRequiredSeconds(encounter.species.rarity);
+    if (requiredSeconds <= 0) {
+      this.clearActiveScanPresentation();
+      return;
+    }
+
+    this.activeScanStatus = {
+      sourceCatalogId: encounter.species.sourceCatalogId,
+      displayName: encounter.species.displayName,
+      progressSeconds: requiredSeconds,
+      requiredSeconds,
+      progressPercent: 100,
     };
     this.game.registry?.set('shinkai.activeScanStatus', this.activeScanStatus);
     this.updateScanRail(this.activeScanStatus);
@@ -1500,11 +1636,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.speciesEncounters.splice(index, 1);
+    destroySpeciesScanGaugeView(encounter.scanGauge);
     encounter.display.destroy();
   }
 
   private destroySpeciesObjects(): void {
     for (const encounter of this.speciesEncounters) {
+      destroySpeciesScanGaugeView(encounter.scanGauge);
       encounter.display.destroy();
     }
     this.speciesEncounters.length = 0;
