@@ -9,6 +9,11 @@ import {
   countCollectedSpecies,
   type DiscoveryProgress,
 } from "./discoveryStore";
+import {
+  getJapaneseNameStatusLabel,
+  getSpeciesCategoryLabel,
+  type JapaneseNameStatus,
+} from "./speciesPresentation";
 
 type CatalogEntry = (typeof speciesCatalogData)[number];
 
@@ -26,16 +31,6 @@ export const CATALOG_CATEGORY_IDS = [
 export type CatalogCategory = (typeof CATALOG_CATEGORY_IDS)[number];
 
 const CATALOG = speciesCatalogData as readonly CatalogEntry[];
-const CATEGORY_LABELS: Record<string, string> = {
-  all: "全カテゴリ",
-  fish: "魚類",
-  gelatinous_plankton: "ゼラチン質生物",
-  squid: "イカ類",
-  octopus: "タコ類",
-  crab: "カニ類",
-  shrimp: "エビ類",
-  other_invertebrate: "その他の無脊椎動物",
-};
 const APPROVED_ASSET_BY_CATALOG_ID = new Map<
   string,
   (typeof APPROVED_SPECIES_ASSETS)[number]
@@ -49,18 +44,15 @@ export function isCatalogCategory(value: string | undefined): value is CatalogCa
   );
 }
 
-/** Returns the Japanese name, then English name, then scientific name. */
+/** Returns the generated Japanese runtime display name only. */
 export function getSpeciesDisplayName(entry: CatalogEntry): {
   primary: string;
-  secondary: string | undefined;
+  secondary: undefined;
 } {
-  const japaneseName = cleanText(entry.preferred_ja_name);
-  const englishName = cleanText(entry.preferred_en_name);
-  const displayName = cleanText(entry.display_name);
-  const primary = japaneseName ?? englishName ?? displayName ??
+  const displayName = cleanText(entry.display_name_ja) ??
+    cleanText(entry.display_name) ??
     entry.accepted_scientific_name;
-  const secondary = japaneseName && englishName ? englishName : undefined;
-  return { primary, secondary };
+  return { primary: displayName, secondary: undefined };
 }
 
 /** Renders the catalog into the existing HTML console overlay. */
@@ -176,16 +168,18 @@ function createCatalogCard(
     return card;
   }
 
-  const { primary, secondary } = getSpeciesDisplayName(entry);
+  const { primary } = getSpeciesDisplayName(entry);
   const collectedCount = progress.collectedSpecies[entry.accepted_scientific_name] ?? 0;
   const status = createTextElement("p", "catalog-card-status", "DISCOVERED / 発見済み");
   const title = createTextElement("h3", "catalog-card-title", primary);
   const header = document.createElement("header");
   header.className = "catalog-card-header";
-  header.append(status, title);
-  if (secondary) {
-    header.appendChild(createTextElement("p", "catalog-card-secondary-name", secondary));
-  }
+  const nameStatus = createTextElement(
+    "p",
+    "catalog-card-name-status",
+    getJapaneseNameStatusLabel(entry.ja_name_status as JapaneseNameStatus),
+  );
+  header.append(status, title, nameStatus);
 
   const media = createSpeciesMedia(entry, primary);
   const scientificName = createTextElement(
@@ -214,28 +208,34 @@ function createSpeciesMedia(entry: CatalogEntry, name: string): HTMLElement {
   if (asset?.usageStatus === "release_approved") {
     const media = document.createElement("figure");
     media.className = "catalog-card-media catalog-photo-media";
+    const stage = document.createElement("div");
+    stage.className = "catalog-media-stage";
     const image = document.createElement("img");
     image.src = asset.url;
     image.alt = `${name}の記録画像`;
     image.loading = "lazy";
-    media.append(image, createPhotoCredit(asset));
+    stage.appendChild(image);
+    media.append(stage, createPhotoCredit(asset));
     return media;
   }
 
   const media = document.createElement("div");
   media.className = "catalog-card-media";
+  const stage = document.createElement("div");
+  stage.className = "catalog-media-stage";
   const definition = getSpeciesPixelIconDefinitionForSpecies({
     sourceCatalogId: entry.source_catalog_id,
     category: entry.category,
   });
   if (!definition) {
-    media.appendChild(
+    stage.appendChild(
       createTextElement(
         "span",
         "catalog-image-pending",
         "ピクセルアイコンを表示できません",
       ),
     );
+    media.appendChild(stage);
     return media;
   }
 
@@ -250,18 +250,20 @@ function createSpeciesMedia(entry: CatalogEntry, name: string): HTMLElement {
   );
   const context = canvas.getContext("2d");
   if (!context) {
-    media.appendChild(
+    stage.appendChild(
       createTextElement(
         "span",
         "catalog-image-pending",
         "ピクセルアイコンを表示できません",
       ),
     );
+    media.appendChild(stage);
     return media;
   }
 
   drawSpeciesPixelIconToCanvasContext(context, definition);
-  media.appendChild(canvas);
+  stage.appendChild(canvas);
+  media.appendChild(stage);
   return media;
 }
 
@@ -330,7 +332,7 @@ function formatDepth(minimum: number, maximum: number): string {
 }
 
 function getCategoryLabel(category: string): string {
-  return CATEGORY_LABELS[category] ?? category.replace(/_/gu, " ");
+  return category === "all" ? "全カテゴリ" : getSpeciesCategoryLabel(category);
 }
 
 function cleanText(value: unknown): string | undefined {

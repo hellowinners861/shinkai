@@ -954,7 +954,7 @@ button {
   text-overflow: ellipsis;
 }
 
-.catalog-card-secondary-name,
+.catalog-card-name-status,
 .catalog-card-scientific-name,
 .catalog-card-collection,
 .catalog-card-locked-copy {
@@ -964,13 +964,13 @@ button {
   line-height: 1.35;
 }
 
-.catalog-card-secondary-name,
-.catalog-card-scientific-name {
+.catalog-card-name-status {
   font-family: 'Cascadia Mono', 'SFMono-Regular', monospace;
 }
 
 .catalog-card-scientific-name {
   overflow-wrap: anywhere;
+  font-family: 'Cascadia Mono', 'SFMono-Regular', monospace;
 }
 
 .catalog-card-collection {
@@ -979,23 +979,35 @@ button {
 
 .catalog-card-media {
   display: grid;
-  min-height: 5.5rem;
+  min-width: 0;
+  place-items: center;
+  overflow: visible;
+}
+
+.catalog-media-stage {
+  display: grid;
+  width: min(100%, 16rem);
+  max-width: 16rem;
+  aspect-ratio: 4 / 3;
+  min-height: 0;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(39, 96, 106, 0.7);
   background: rgba(2, 7, 11, 0.8);
 }
 
-.catalog-card-media img {
+.catalog-media-stage img {
   display: block;
-  width: 100%;
-  max-height: 8rem;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 
 .catalog-photo-media {
   align-content: start;
-  justify-items: stretch;
+  justify-items: center;
   gap: 0.3rem;
   margin: 0;
 }
@@ -1016,9 +1028,10 @@ button {
   text-underline-offset: 0.15em;
 }
 
-.catalog-card-media canvas.catalog-species-icon {
+.catalog-media-stage canvas.catalog-species-icon {
   display: block;
   width: min(100%, 8rem);
+  max-width: 8rem;
   height: auto;
   max-height: 8rem;
   aspect-ratio: 1 / 1;

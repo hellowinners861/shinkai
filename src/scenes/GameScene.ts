@@ -6,6 +6,7 @@ import {
   recordSpeciesDiscovery,
   writeDiscoveryProgress,
 } from '../catalog/discoveryStore';
+import { getUnknownSpeciesLabel } from "../catalog/speciesPresentation";
 import speciesCatalogData from '../data/generated/speciesCatalog.json';
 import { APPROVED_SPECIES_ASSETS } from '../data/speciesAssets';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game/config';
@@ -1490,7 +1491,7 @@ export class GameScene extends Phaser.Scene {
       sourceCatalogId: encounter.species.sourceCatalogId,
       displayName: this.knownSpecies.has(encounter.species.acceptedScientificName)
         ? encounter.species.displayName
-        : 'UNKNOWN / ' + encounter.species.category,
+        : getUnknownSpeciesLabel(encounter.species.category),
       progressSeconds: target.progressSeconds ?? 0,
       requiredSeconds,
       progressPercent: getScanProgressPercent(target),
@@ -1527,7 +1528,7 @@ export class GameScene extends Phaser.Scene {
         this.largeCreature.species.acceptedScientificName,
       )
         ? this.largeCreature.species.displayName
-        : 'UNKNOWN / ' + this.largeCreature.species.category,
+        : getUnknownSpeciesLabel(this.largeCreature.species.category),
       progressSeconds,
       requiredSeconds,
       progressPercent: (progressSeconds / requiredSeconds) * 100,

@@ -1,6 +1,6 @@
 # SHINKAI — MVP設計
 
-- Status: Ultra承認済み（モバイルファースト／100種対応／二本スティック式サーチライト／深度4章／調査艇・照射灯V4／生物頭上識別ゲージV5）
+- Status: Ultra承認済み（モバイルファースト／100種対応／二本スティック式サーチライト／深度4章／調査艇・照射灯V4／生物頭上識別ゲージV5／和名表示／図鑑比率V6）
 - Last updated: 2026-08-19
 - Target: スマートフォン縦画面向け2DシングルプレイWebゲーム（PCフォールバックあり）
 
@@ -82,7 +82,7 @@
 
 岩、衝突ダメージ、無敵時間、燃料回復の実装正本は `docs/HAZARDS_AND_RECOVERY.md` とする。
 
-サーチライト識別、深度4章、カテゴリ別行動、大型生物イベント（active中の大型個体への識別フォーカス優先を含む）の正本は `docs/SEARCHLIGHT_CHAPTERS_V3.md` とする。潜水艦本体、回転式照射灯、光束の表示は `docs/SUBMARINE_SEARCHLIGHT_V4.md`、通常・大型生物の頭上識別ゲージと完了確認表示は `docs/CREATURE_SCAN_GAUGE_V5.md` を最新正本とする。同範囲で既存文書と競合する場合はV5、V4、V3の順に優先し、危険ウェーブ、得点内訳、結果、自己ベストは `docs/GAMEPLAY_LOOP_V2.md` を引き続き正本とする。
+和名表示、図鑑カードの名称、図鑑メディア比率の正本は `docs/JAPANESE_NAMES_AND_CATALOG_MEDIA_V6.md` とする。サーチライト識別、深度4章、カテゴリ別行動、大型生物イベント（active中の大型個体への識別フォーカス優先を含む）の正本は `docs/SEARCHLIGHT_CHAPTERS_V3.md` とする。潜水艦本体、回転式照射灯、光束の表示は `docs/SUBMARINE_SEARCHLIGHT_V4.md`、通常・大型生物の頭上識別ゲージと完了確認表示は `docs/CREATURE_SCAN_GAUGE_V5.md` を最新正本とする。同範囲で既存文書と競合する場合はV6、V5、V4、V3の順に優先し、危険ウェーブ、得点内訳、結果、自己ベストは `docs/GAMEPLAY_LOOP_V2.md` を引き続き正本とする。
 
 | 項目 | 初期値 |
 | --- | ---: |
@@ -234,7 +234,7 @@ tests/
 - 分類学的accepted statusと、200m以深での生息・観察を信頼できる出典で確認済みである。
 - 深度、カテゴリ、ゲーム内レア度、出現条件、得点が定義されている。
 - リリース可能な写真または科学イラストが最低1点あり、asset manifestの審査済みである。
-- 日本語名が存在しない場合は創作せず、英名またはaccepted scientific nameへフォールバックする。
+- 149種すべてに `docs/SPECIES_JA_DISPLAY_NAMES.csv` の日本語UI表示ラベルを割り当てる。検証済みの標準和名は `established`、標準和名を確認できない明確な日本語ゲーム内呼称は `localized` とし、後者を標準和名として主張しない。英語一般名はUIへ表示せず、学名は別行で併記する。生成JSONの互換 `display_name` は常にサイドカーの `display_name_ja` と一致させる。
 - 情報と画像の出典を図鑑または帰属画面から確認でき、公開ゲーム内で発見可能である。
 
 ゲーム内レア度はcommon、uncommon、rare、very_rare、legendaryの5段階とする。これはゲーム内出現率であり、個体数や保全状況ではない。出現は観察深度、生息環境、群れ、同時出現上限、再出現待ち時間等のデータで決める。

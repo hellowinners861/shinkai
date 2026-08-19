@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const INPUT = resolve(ROOT, "docs/SPECIES_CATALOG.csv");
+const JAPANESE_NAMES_INPUT = resolve(ROOT, "docs/SPECIES_JA_DISPLAY_NAMES.csv");
 const OUTPUT = resolve(ROOT, "src/data/generated/speciesCatalog.json");
 
 const REQUIRED_COLUMNS = [
@@ -59,6 +60,8 @@ const CATEGORIES = new Set([
 const RARITIES = new Set(["common", "uncommon", "rare", "very_rare", "legendary"]);
 const BEHAVIORS = new Set(["swim", "drift", "crawl", "stationary"]);
 const RESEARCH_STATUSES = new Set(["draft", "verified", "release_approved"]);
+const JAPANESE_NAME_STATUSES = new Set(["established", "localized"]);
+const JAPANESE_CHARACTER_PATTERN = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u;
 const DEPTH_BANDS = [
   [0, 200],
   [200, 1000],
@@ -66,7 +69,7 @@ const DEPTH_BANDS = [
   [4000, 6000],
 ];
 
-function parseCsv(text) {
+function parseCsv(text, requiredColumns = REQUIRED_COLUMNS) {
   const input = text.replace(/^\uFEFF/u, "");
   const rows = [];
   let row = [];
@@ -105,7 +108,7 @@ function parseCsv(text) {
   }
   const header = rows.shift();
   if (!header || header.length === 0) throw new Error("CSV has no header");
-  const missing = REQUIRED_COLUMNS.filter((column) => !header.includes(column));
+  const missing = requiredColumns.filter((column) => !header.includes(column));
   if (missing.length > 0) throw new Error("CSV is missing columns: " + missing.join(", "));
   return rows.map((values) =>
     Object.fromEntries(header.map((key, index) => [key, values[index] || ""])),
@@ -154,6 +157,70 @@ function assertHttpsUrl(value, label) {
   return value;
 }
 
+function validateJapaneseDisplayNames(catalogRows, sidecarRows) {
+  const catalogIds = new Set();
+  for (const row of catalogRows) {
+    const id = row.source_catalog_id;
+    if (!id || id.trim() !== id) {
+      throw new Error('catalog source_catalog_id must be nonempty and trimmed');
+    }
+    if (catalogIds.has(id)) {
+      throw new Error('catalog has duplicate source_catalog_id ' + id);
+    }
+    catalogIds.add(id);
+  }
+
+  const sidecarById = new Map();
+  for (const [index, row] of sidecarRows.entries()) {
+    const prefix = 'Japanese display-name row ' + (index + 2);
+    const id = row.source_catalog_id;
+    const displayName = row.display_name_ja.normalize('NFC').trim();
+    if (!id || id.trim() !== id) {
+      throw new Error(prefix + ': source_catalog_id must be nonempty and trimmed');
+    }
+    if (sidecarById.has(id)) {
+      throw new Error(prefix + ': duplicate source_catalog_id ' + id);
+    }
+    if (!displayName || !JAPANESE_CHARACTER_PATTERN.test(displayName)) {
+      throw new Error(prefix + ' (' + id + '): display_name_ja must contain Japanese characters');
+    }
+    if (!JAPANESE_NAME_STATUSES.has(row.name_status)) {
+      throw new Error(prefix + ' (' + id + '): name_status must be established or localized');
+    }
+    sidecarById.set(id, {
+      display_name_ja: displayName,
+      name_status: row.name_status,
+    });
+  }
+
+  for (const id of catalogIds) {
+    if (!sidecarById.has(id)) {
+      throw new Error('Japanese display-name sidecar is missing catalog ID ' + id);
+    }
+  }
+  for (const id of sidecarById.keys()) {
+    if (!catalogIds.has(id)) {
+      throw new Error('Japanese display-name sidecar has extra catalog ID ' + id);
+    }
+  }
+
+  for (const row of catalogRows) {
+    const sidecar = sidecarById.get(row.source_catalog_id);
+    const preferredJapaneseName = row.preferred_ja_name.normalize('NFC').trim();
+    if (sidecar.name_status === 'established') {
+      if (!preferredJapaneseName) {
+        throw new Error(row.source_catalog_id + ': established display name requires preferred_ja_name');
+      }
+      if (preferredJapaneseName !== sidecar.display_name_ja) {
+        throw new Error(row.source_catalog_id + ': established display name must match preferred_ja_name');
+      }
+    } else if (preferredJapaneseName) {
+      throw new Error(row.source_catalog_id + ': localized display name must not populate preferred_ja_name');
+    }
+  }
+
+  return sidecarById;
+}
 function validateRow(row, index, indexes) {
   const prefix = "row " + (index + 2) + " (" + row.source_catalog_id + ")";
   if (!row.slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(row.slug)) {
@@ -234,8 +301,9 @@ function validateRow(row, index, indexes) {
   }
 }
 
-function toEntry(row) {
+function toEntry(row, japaneseDisplayNames) {
   const conditions = parseJson(row.spawn_conditions, row.slug + ".spawn_conditions", "object");
+  const japaneseDisplayName = japaneseDisplayNames.get(row.source_catalog_id);
   return {
     source_catalog_id: row.source_catalog_id,
     slug: row.slug,
@@ -247,6 +315,8 @@ function toEntry(row) {
     synonyms: parseJson(row.synonyms, row.slug + ".synonyms", "array"),
     preferred_ja_name: row.preferred_ja_name || null,
     preferred_en_name: row.preferred_en_name,
+    display_name_ja: japaneseDisplayName.display_name_ja,
+    ja_name_status: japaneseDisplayName.name_status,
     category: row.category,
     rank: row.rank,
     phylum: row.phylum,
@@ -271,16 +341,21 @@ function toEntry(row) {
     fact_source_url: row.fact_source_url,
     last_verified_at: row.last_verified_at,
     research_status: row.research_status,
-    display_name: row.preferred_ja_name || row.preferred_en_name || row.accepted_scientific_name,
+    display_name: japaneseDisplayName.display_name_ja,
   };
 }
 
 const rows = parseCsv(await readFile(INPUT, "utf8"));
+const japaneseDisplayRows = parseCsv(
+  await readFile(JAPANESE_NAMES_INPUT, "utf8"),
+  ["source_catalog_id", "display_name_ja", "name_status"],
+);
+const japaneseDisplayNames = validateJapaneseDisplayNames(rows, japaneseDisplayRows);
 const indexes = { name: new Set(), slug: new Set(), authority: new Set() };
 rows.forEach((row, index) => validateRow(row, index, indexes));
 const runtimeRows = rows.filter((row) => row.research_status !== "draft");
 runtimeRows.sort((left, right) => left.slug.localeCompare(right.slug, "en"));
-const entries = runtimeRows.map(toEntry);
+const entries = runtimeRows.map((row) => toEntry(row, japaneseDisplayNames));
 await mkdir(dirname(OUTPUT), { recursive: true });
 await writeFile(OUTPUT, JSON.stringify(entries, null, 2) + "\n", "utf8");
 console.log("Generated " + entries.length + " species entries from " + rows.length + " catalog rows.");
